@@ -9,6 +9,7 @@ Email: chanlingxi@gmail.com
 ComplexSV provides scripts for complex structure variation analsyis. Currently, it provides two functionalities:
 + [linkage_heatmap.py] Generate read shared linkages for given SV event.
 + [read_support.py] Generate supporting split reads for given SV event.
+
 The output files can be visuliazed through https://btdraw.com/ SV modules.
 
 ## Depencency
