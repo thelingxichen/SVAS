@@ -17,6 +17,7 @@ Options:
 import numpy as np
 import docopt
 import pysam
+import collections
 import os
 import sv
 
@@ -27,15 +28,24 @@ def run_call(bam_fn=None, sv_fn=None, expand=500,
     with open(out_fn, 'w') as f:
         sv_records = sv.read_vcf(sv_fn)
         for i, record in enumerate(sv_records):
-            if i != 4:
-                pass
+            print('--- sv_record\n', record)
 
             split_reads = get_split_reads(record, bam_fn)
-            if not split_reads:
+            if not split_reads:  # or len(split_reads) < 5:
                 continue
             f.write(get_sv_info(record, int(len(split_reads)/2)))
-            for read in split_reads:
-                f.write(read)
+            for j, read in enumerate(split_reads):
+                read, read_str = read
+                f.write(read_str)
+
+
+def get_reads(sv_record, samfile):
+
+    for prime in ['5p', '3p']:
+        chrom = getattr(sv_record, 'chrom_{}'.format(prime))
+        bkpos = getattr(sv_record, 'bkpos_{}'.format(prime))
+        for read in samfile.fetch(chrom, bkpos-1, bkpos):
+            yield prime, bkpos, read
 
 
 def get_split_reads(sv_record, bam_fn):
@@ -46,35 +56,104 @@ def get_split_reads(sv_record, bam_fn):
 
     split_reads = []
     tags = set()
-    for prime in ['5p', '3p']:
-        chrom = getattr(sv_record, 'chrom_{}'.format(prime))
-        bkpos = getattr(sv_record, 'bkpos_{}'.format(prime))
-        for read in samfile.fetch(chrom, bkpos-1, bkpos):
-            if not is_split_read(read, bkpos):
-                continue
-            reads = list(indexed_reads.find(read.query_name))
-            if len(reads) != 2:
-                continue
+    homseq = sv_record.meta_info.get('HOMSEQ')
+    pos = []
+    for prime, bkpos, read in get_reads(sv_record, samfile):
+        if not is_split_read_for_bkpos(prime, bkpos, read):
+            continue
+        print(read)
+        reads = list(indexed_reads.find(read.query_name))
+        if len(reads) == 1:
+            continue
 
-            tag1, read_str1 = get_read_info(reads[0], sv_record, prime,
-                                            is_split_read(reads[0], bkpos),
-                                            reads[1])
+        if len(reads) == 3:
+            res = deal_with_three_reads(read, reads, sv_record, prime)
+        if len(reads) == 2:
+            res = deal_with_two_reads(read, reads, sv_record, prime)
 
-            tag2, read_str2 = get_read_info(reads[1], sv_record, prime,
-                                            is_split_read(reads[1], bkpos),
-                                            reads[0])
-            tag = '{}_{}'.format(tag1, tag2)
-            if tag in tags:
-                continue
-            else:
-                tags.add(tag)
-            split_reads.append(read_str1)
-            split_reads.append(read_str2)
+        if not res:
+            continue
+        tag, split_reads_tmp = res
 
+        if tag in tags:
+            continue
+        else:
+            tags.add(tag)
+
+        split_reads = split_reads + split_reads_tmp
+
+        for r, _ in split_reads_tmp:
+            pos = pos + get_bkpos(r)
+
+    most_common_bkpos = collections.Counter(pos).most_common(1)
+    if not most_common_bkpos:
+        return []
+    most_common_bkpos = collections.Counter(pos).most_common(1)[0][0][1]
+    if homseq and sv_record.bkpos_5p == most_common_bkpos:
+        sv_record.bkpos_3p = sv_record.bkpos_3p + len(homseq)
+    if homseq and sv_record.bkpos_3p == most_common_bkpos:
+        sv_record.bkpos_5p = sv_record.bkpos_5p - len(homseq)
     return split_reads
 
 
-def is_split_read(read, bkpos, map_q=20, read_q=20, distance=20):
+def deal_with_three_reads(read, reads, sv_record, prime):
+    bkpos = getattr(sv_record, 'bkpos_{}'.format(prime))
+    if 'H' in read.cigarstring:
+        return None
+
+    pair_read = [r for r in reads if r.is_read1 != read.is_read1][0]
+    split_read = [r for r in reads if r.is_read1 == read.is_read1
+                  and (r.cigarstring != read.cigarstring)]
+    if not split_read:
+        reads = [read, pair_read]
+        return deal_with_two_reads(read, reads, sv_record, prime)
+
+    split_read = split_read[0]
+    print(pair_read)
+    print(split_read)
+
+    split_prime, split_pos = get_bkpos(split_read)[0]
+    split_bkpos = getattr(sv_record, 'bkpos_{}'.format(split_prime))
+    print(split_bkpos - split_pos)
+    if abs(split_bkpos - split_pos) > 100:
+        return None
+
+    tag1, read_str1 = get_read_info(read, sv_record, prime,
+                                    is_split_read_for_bkpos(prime, bkpos, read),
+                                    pair_read)
+
+    tag2, read_str2 = get_read_info(pair_read, sv_record, prime,
+                                    is_split_read_for_bkpos(prime, bkpos, pair_read),
+                                    read)
+    if tag1 is None or tag2 is None:
+        return None
+    tag = '{}_{}'.format(tag1, tag2)
+    return tag, [(read, read_str1), (pair_read, read_str2)]
+
+
+def deal_with_two_reads(reads, chrom, bkpos, prime):
+    pass
+
+
+def get_bkpos(read):
+    pos = []
+    if read.cigartuples[0][0] in [4, 5]:
+        '''
+        114H36M or 61S89M
+        from left to right
+        '''
+        pos.append(('3p', read.pos + read.cigartuples[0][1]))
+    if read.cigartuples[-1][0] in [4, 5]:
+        '''
+        reference_end points to one past the last aligned residue.
+        114M36S or 61M89S
+        from right to left
+        '''
+        pos.append(('5p', read.pos + len(read.query_sequence) - read.cigartuples[-1][1]))
+    return pos
+
+
+def is_split_read_for_bkpos(prime, bkpos, read, map_q=0, read_q=0, distance=10):
     if read.is_supplementary:
         return False
 
@@ -84,27 +163,6 @@ def is_split_read(read, bkpos, map_q=20, read_q=20, distance=20):
     if read.cigartuples[0][0] == 0 and read.cigartuples[-1][0] == 0:
         # start with M and end with M
         return False
-    if read.cigartuples[0][0] in [4, 5]:
-        '''
-        114H36M or 61S89M
-        from left to right
-        '''
-        if read.cigartuples[0][1] >= distance \
-                and read.cigartuples[0][1] <= 150 - distance:
-            return True
-        else:
-            return False
-    if read.cigartuples[-1][0] in [4, 5]:
-        '''
-        reference_end points to one past the last aligned residue.
-        114M36S or 61M89S
-        from right to left
-        '''
-        if read.cigartuples[-1][1] >= distance \
-                and read.cigartuples[-1][1] <= 150 - distance:
-            return True
-        else:
-            return False
 
     if np.mean(read.query_qualities) < read_q:
         '''
@@ -112,28 +170,42 @@ def is_split_read(read, bkpos, map_q=20, read_q=20, distance=20):
         no offset of 33 needs to be subtracted.
         '''
         return False
-    return True
+
+    pos = get_bkpos(read)
+    flag = False
+    for p in pos:
+        prime_tmp, p = p
+        if prime_tmp == prime and abs(p - bkpos) < distance:
+            flag = True
+
+    return flag
 
 
 def get_read_info(read, record, prime, is_split, paired_read):
     query_qualities = ''.join(chr(x + 33) for x in read.query_qualities)
     flag = ''
     if is_split:
-        flag += 'J'
+        flag += 'j'
     else:
-        flag += 'P'
+        flag += 'J'
     if read.is_reverse:
         flag += 'r'
     if paired_read.is_reverse:
         flag += 'R'
-    pos1 = read.reference_start+1 - record.bkpos_5p
+    pos1 = read.reference_start + 1 - record.bkpos_5p
     tmp = len(record.inner_ins) if record.inner_ins else 0
-    pos2 = read.reference_start+1 - record.bkpos_3p - tmp
+    pos2 = read.reference_start + 1 - record.bkpos_3p - tmp - 2
     if abs(pos1) < abs(pos2):
         pos = pos1
     else:
         pos = pos2
+    if abs(pos) > 500:
+        return None, None
 
+    if 'BX' in read.get_tags():
+        barcode = read.get_tag('BX')
+    else:
+        barcode = ''
     res = '{}/{}\t{}\t{}\t{}\t{}\t{}\n'.format(
         read.query_name,
         1 if read.is_read1 else 2,
@@ -141,19 +213,43 @@ def get_read_info(read, record, prime, is_split, paired_read):
         pos,
         read.query_sequence,
         query_qualities,
-        read.get_tag('BX')
+        barcode
     )
     tag = '{}_{}'.format(read.cigarstring, pos)
     return tag, res
 
 
 def get_sv_info(record, junc_reads):
-    res = '##{}\t{}\t{}\t{}\tInner-Ins:{}\t{}\n'.format(
+
+    meta_info = 'Inner-ins:{}'.format(
+        str(record.inner_ins).upper()
+    )
+    res = '##{}\t{}\t{}\t{}\t{}\t{}\n'.format(
         record.chrom_5p,
         record.bkpos_5p,
         record.chrom_3p,
         record.bkpos_3p,
+        meta_info,
+        junc_reads
+    )
+    return(res)
+
+
+def get_sv_info2(record, junc_reads):
+
+    meta_info = 'Inner-ins:{},HM:{},BX:{}'.format(
         str(record.inner_ins).upper(),
+        'NONE',
+        'NONE'
+    )
+    res = '##{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
+        record.chrom_5p,
+        record.bkpos_5p,
+        record.strand_5p,
+        record.chrom_3p,
+        record.bkpos_3p,
+        record.strand_3p,
+        meta_info,
         junc_reads
     )
     return(res)

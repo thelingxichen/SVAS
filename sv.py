@@ -44,13 +44,9 @@ class SVRecord():
     def from_parent(self):
         args = {}
         args['meta_info'] = self._get_sv_meta_info
-        self.set(**args)
-
         if 'BND' in self.var_type:
-            args = self._get_bnd_sv_fields
-
+            args.update(self._get_bnd_sv_fields)
         args.update(self._get_general_sv_fields)
-
         self.set(**args)
 
     def set(self, chrom_5p=None, bkpos_5p=None, strand_5p=None,
