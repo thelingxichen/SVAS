@@ -31,7 +31,7 @@ def simu_pe(local_hap, sv_type, span):
         read2_flag += 'd'
 
     read1_seq = local_hap[span+read1_pos-1: span+read1_pos+150-1]
-    read2_seq = local_hap[span+read1_pos-1: span+read2_pos+150-1]
+    read2_seq = local_hap[span+read2_pos-1: span+read2_pos+150-1]
 
     barcode = ''
 
