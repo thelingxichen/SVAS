@@ -28,10 +28,12 @@ def run_call(bam_fn=None, sv_fn=None, expand=500,
     with open(out_fn, 'w') as f:
         sv_records = sv.read_vcf(sv_fn)
         for i, record in enumerate(sv_records):
-            print('--- sv_record\n', record)
+            if record.inner_ins and len(record.inner_ins) >= 10:
+                continue
+            print(i, '--- sv_record\n', record)
 
             split_reads = get_split_reads(record, bam_fn)
-            if not split_reads:  # or len(split_reads) < 5:
+            if not split_reads or len(split_reads) < 5:
                 continue
             f.write(get_sv_info(record, int(len(split_reads)/2)))
             for j, read in enumerate(split_reads):
@@ -219,7 +221,7 @@ def get_read_info(read, record, prime, is_split, paired_read):
     return tag, res
 
 
-def get_sv_info(record, junc_reads):
+def get_sv_info2(record, junc_reads):
 
     meta_info = 'Inner-ins:{}'.format(
         str(record.inner_ins).upper()
@@ -235,14 +237,18 @@ def get_sv_info(record, junc_reads):
     return(res)
 
 
-def get_sv_info2(record, junc_reads):
-
+def get_sv_info(record, junc_reads):
+    barcodes = record.meta_info.get('BX')
+    if barcodes:
+        barcode = ','.join(barcodes)
+    else:
+        barcode = 'NONE'
     meta_info = 'Inner-ins:{},HM:{},BX:{}'.format(
         str(record.inner_ins).upper(),
         'NONE',
         'NONE'
     )
-    res = '##{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
+    res = '##{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
         record.chrom_5p,
         record.bkpos_5p,
         record.strand_5p,
@@ -250,7 +256,8 @@ def get_sv_info2(record, junc_reads):
         record.bkpos_3p,
         record.strand_3p,
         meta_info,
-        junc_reads
+        junc_reads,
+        barcode
     )
     return(res)
 
