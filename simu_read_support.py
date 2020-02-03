@@ -58,7 +58,7 @@ def simu_local_hap(span, ref_fasta, chrom_5p, bkpos_5p, chrom_3p, bkpos_3p, sv_t
     if sv_type in ['ht', 'th']:
         start_5p = bkpos_5p - span
         end_5p = bkpos_5p
-        start_3p = bkpos_3p
+        start_3p = bkpos_3p - 1  # bed start from 0
         end_3p = bkpos_3p + span
     elif sv_type == 'hh':
         start_5p = bkpos_5p - span
@@ -66,9 +66,9 @@ def simu_local_hap(span, ref_fasta, chrom_5p, bkpos_5p, chrom_3p, bkpos_3p, sv_t
         start_3p = bkpos_3p - span
         end_3p = bkpos_3p
     elif sv_type == 'tt':
-        start_5p = bkpos_5p
+        start_5p = bkpos_5p - 1
         end_5p = bkpos_5p + span
-        start_3p = bkpos_3p
+        start_3p = bkpos_3p - 1
         end_3p = bkpos_3p + span
 
     bed_str = '{}\t{}\t{}\n{}\t{}\t{}\n'.format(
@@ -99,6 +99,7 @@ def simu_reads(ref_fasta,
     span = 400
     local_hap = simu_local_hap(span, ref_fasta, chrom_5p, bkpos_5p, chrom_3p, bkpos_3p, sv_type, inner_ins)
 
+    '''
     meta_info = 'Inner-ins:{},HM:{},BX:{}'.format(
         inner_ins if inner_ins else 'NONE',
         'NONE',
@@ -109,6 +110,15 @@ def simu_reads(ref_fasta,
         chrom_3p, bkpos_3p, strand_3p,
         meta_info, junc_reads
     )
+    '''
+    meta_info = 'Inner-ins:{}'.format(
+        inner_ins if inner_ins else 'NONE'
+    )
+    res = '##{}\t{}\t{}\t{}\t{}\t{}\n'.format(
+        chrom_5p, bkpos_5p, chrom_3p, bkpos_3p,
+        meta_info, junc_reads
+    )
+
     for i in range(junc_reads):
         res += simu_pe(local_hap, sv_type, span)
     return res
