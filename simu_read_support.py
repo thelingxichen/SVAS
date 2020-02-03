@@ -57,14 +57,14 @@ def simu_pe(local_hap, sv_type, span):
 def simu_local_hap(span, ref_fasta, chrom_5p, bkpos_5p, chrom_3p, bkpos_3p, sv_type, inner_ins):
     if sv_type in ['ht', 'th']:
         start_5p = bkpos_5p - span
-        end_5p = bkpos_5p
+        end_5p = bkpos_5p + 1
         start_3p = bkpos_3p - 1  # bed start from 0
         end_3p = bkpos_3p + span
     elif sv_type == 'hh':
         start_5p = bkpos_5p - span
-        end_5p = bkpos_5p
+        end_5p = bkpos_5p + 1
         start_3p = bkpos_3p - span
-        end_3p = bkpos_3p
+        end_3p = bkpos_3p + 1
     elif sv_type == 'tt':
         start_5p = bkpos_5p - 1
         end_5p = bkpos_5p + span
