@@ -54,12 +54,21 @@ def simu_pe(local_hap, sv_type, span):
     return res
 
 
+def reverse_complementary(seq):
+    maps = {'A': 'T',
+            'T': 'A',
+            'C': 'G',
+            'G': 'C',
+            'N': 'N'}
+    return ''.join([maps[x] for x in seq][::-1])
+
+
 def simu_local_hap(span, ref_fasta, chrom_5p, bkpos_5p, chrom_3p, bkpos_3p, sv_type, inner_ins):
     if sv_type in ['ht', 'th']:
         start_5p = bkpos_5p - span
         end_5p = bkpos_5p
         start_3p = bkpos_3p - 1  # bed start from 0
-        end_3p = bkpos_3p + span
+        end_3p = bkpos_3p + span - 1
     elif sv_type == 'hh':
         start_5p = bkpos_5p - span
         end_5p = bkpos_5p
@@ -67,9 +76,9 @@ def simu_local_hap(span, ref_fasta, chrom_5p, bkpos_5p, chrom_3p, bkpos_3p, sv_t
         end_3p = bkpos_3p
     elif sv_type == 'tt':
         start_5p = bkpos_5p - 1
-        end_5p = bkpos_5p + span
+        end_5p = bkpos_5p + span - 1
         start_3p = bkpos_3p - 1
-        end_3p = bkpos_3p + span
+        end_3p = bkpos_3p + span - 1
 
     bed_str = '{}\t{}\t{}\n{}\t{}\t{}\n'.format(
         chrom_5p, start_5p, end_5p,
@@ -85,9 +94,9 @@ def simu_local_hap(span, ref_fasta, chrom_5p, bkpos_5p, chrom_3p, bkpos_3p, sv_t
     if sv_type in ['ht', 'th']:
         local_hap = seq_5p + inner_ins + seq_3p
     elif sv_type == 'hh':
-        local_hap = seq_5p + inner_ins + seq_3p[::-1]
+        local_hap = seq_5p + inner_ins + reverse_complementary(seq_3p)
     elif sv_type == 'tt':
-        local_hap = seq_5p[::-1] + inner_ins + seq_3p
+        local_hap = reverse_complementary(seq_5p) + inner_ins + seq_3p
 
     return local_hap
 
@@ -98,7 +107,7 @@ def simu_reads(ref_fasta,
                inner_ins, junc_reads):
     span = 400
     local_hap = simu_local_hap(span, ref_fasta, chrom_5p, bkpos_5p, chrom_3p, bkpos_3p, sv_type, inner_ins)
-    # '''
+    '''
     meta_info = 'Inner-ins:{},HM:{},BX:{}'.format(
         inner_ins if inner_ins else 'NONE',
         'NONE',
@@ -117,7 +126,7 @@ def simu_reads(ref_fasta,
         chrom_5p, bkpos_5p, chrom_3p, bkpos_3p,
         meta_info, junc_reads
     )
-    '''
+    # '''
 
     for i in range(junc_reads):
         res += simu_pe(local_hap, sv_type, span)
