@@ -98,7 +98,7 @@ def simu_reads(ref_fasta,
                inner_ins, junc_reads):
     span = 400
     local_hap = simu_local_hap(span, ref_fasta, chrom_5p, bkpos_5p, chrom_3p, bkpos_3p, sv_type, inner_ins)
-
+    # '''
     meta_info = 'Inner-ins:{},HM:{},BX:{}'.format(
         inner_ins if inner_ins else 'NONE',
         'NONE',
