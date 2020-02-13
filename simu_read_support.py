@@ -176,9 +176,11 @@ def main():
     sv_type = 'ht'
     chrom_5p = 'chr2'  # ALK
     bkpos_5p = 29592774
+    # chr2:29591774-29593774
     strand_5p = '+'
     chrom_3p = 'chr10'  # KIF5B
     bkpos_3p = 32307938
+    # chr10:32306938-32308938
     strand_3p = '+'
     inner_ins = 'CCGA'
     hm = ''
