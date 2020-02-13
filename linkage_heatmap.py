@@ -12,7 +12,7 @@ Options:
     --version           Show version.
     --bam_fn=IN_FILE    Path of tumor bam file.
     --sv_fn=IN_FILE     Path of tumor sv vcf file.
-    --out_dir=OUT_DIR   Path of out directory, default is ./
+    --out_dir=OUT_DIR   Path of out directory, [default: ./] 
     --tenx=BOOL         Boolean value, True if the protocal is 10x, otherwise False.
 """
 import pysam
@@ -86,8 +86,19 @@ def get_regions(sv_fn, expand):
                            sv_record.bkpos_3p-expand,
                            sv_record.bkpos_3p+expand,
                            sv_record)
-        yield (region_5p, region_3p)
 
+        if sv_record.chrom_5p == sv_record.chrom_3p:
+            if sv_record.bkpos_5p < sv_record.bkpos_3p:
+                yield (region_5p, region_3p)
+            else:
+                yield (region_3p, region_5p)
+        else:
+            chroms = list(map(str, range(1, 23))) + ['X', 'Y']
+            if chroms.index(sv_record.chrom_5p.replace('chr', '')) < chroms.index(sv_record.chrom_3p.replace('chr', '')):
+                yield (region_5p, region_3p)
+            else:
+                yield (region_3p, region_5p)
+            
 
 def get_linkage_matrix(linkages, x_region, y_region, resolution, linkage_type=None):
         x_start = int(x_region.start/resolution)

@@ -10,6 +10,7 @@ class SVRecord():
     def __init__(self, vcf_record):
         self.parent = vcf_record
         self.from_parent()
+        print(self)
 
     def __repr__(self):
         funcs = (self._format_info if 'info' in field else self._format_value
@@ -150,18 +151,30 @@ class SVRecord():
         alt = self.parent.ALT[0]
 
         # if strand1 == '-' and strand2 == '-':   # inversion
-        if alt.remoteOrientation and alt.orientation:   # inversion
+        if alt.remoteOrientation and alt.orientation:   
+            # [p[t tt-inversion
             args['strand_5p'] = '-'
             args['strand_3p'] = '+'
         # elif strand1 == '+' and strand2 == '+':  # inversion
-        elif not alt.remoteOrientation and not alt.orientation:  # inversion
+        elif not alt.remoteOrientation and not alt.orientation:  
+            # t]p] hh-inversion
             args['strand_5p'] = '+'
             args['strand_3p'] = '-'
         else:                                   # not inversion
             args['strand_5p'] = '+'
             args['strand_3p'] = '+'
 
-        if alt.remoteOrientation:  # 'head' If the parent.POS is connected to sequence 3', extending to 5'
+        if not alt.remoteOrientation and alt.orientation:
+            # t[p[ ht
+            args['chrom_3p'] = self.parent.CHROM
+            args['bkpos_3p'] = self.parent.POS
+            args['chrom_5p'] = alt.chr
+            args['bkpos_5p'] = alt.pos
+
+            args['inner_ins'] = alt.connectingSequence[::-1]
+
+        else:
+            # ]p]t  th
             args['chrom_5p'] = self.parent.CHROM
             args['bkpos_5p'] = self.parent.POS
             args['chrom_3p'] = alt.chr
@@ -169,18 +182,14 @@ class SVRecord():
 
             args['inner_ins'] = alt.connectingSequence[1:]
 
-        else:               # 'tail' If the parent.POS is connected to sequence 5', extending to 3'
-            args['chrom_5p'] = alt.chr
-            args['bkpos_5p'] = alt.pos
-            args['chrom_3p'] = self.parent.CHROM
-            args['bkpos_3p'] = self.parent.POS
-
-            args['inner_ins'] = alt.connectingSequence[:-1]
-
         return args
 
     @property
     def orientation(self):
+        '''
+        update orientation in 2020.02.13, 
+        chrom bkpos strand result is correct, won't affect localhap
+        '''
         '''
         # If the breakend is connected to sequence 3', extending to 5'
         breakend is head (based on + strand): alt.orientation == True
@@ -191,12 +200,14 @@ class SVRecord():
             return self.meta_info.get('JOINTYPE', None)
 
         alt = self.parent.ALT[0]
-        o = 'h' if alt.remoteOrientation else 't'   # self.parent.POS point
-        o += 'h' if alt.orientation else 't'        # breakend point
-        if self.parent.CHROM > self.parent.ALT[0].chr:
-            o = o[::-1]
-        elif self.parent.CHROM == self.parent.ALT[0].chr and self.parent.POS > self.parent.ALT[0].pos:
-            o = o[::-1]
+        if alt.remoteOrientation and alt.orientation:
+            o = 'tt'
+        elif not alt.remoteOrientation and not alt.orientation:  
+            o = 'hh'
+        else:
+            o = 'h' if alt.remoteOrientation else 't'   # self.parent.POS point
+            o += 'h' if alt.orientation else 't'        # breakend point
+
         return o
 
     @property
