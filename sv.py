@@ -10,7 +10,6 @@ class SVRecord():
     def __init__(self, vcf_record):
         self.parent = vcf_record
         self.from_parent()
-        print(self)
 
     def __repr__(self):
         funcs = (self._format_info if 'info' in field else self._format_value

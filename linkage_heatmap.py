@@ -32,7 +32,7 @@ class Region():
         self.sv_list = [sv_record]
 
 
-def run_call(bam_fn=None, sv_fn=None, resolution=100,
+def run_call(bam_fn=None, sv_fn=None, resolution=50,
              expand=1000, tenx=None,
              out_dir='./', **args):
     if tenx is None or tenx == 'True':
@@ -101,24 +101,26 @@ def get_regions(sv_fn, expand):
             
 
 def get_linkage_matrix(linkages, x_region, y_region, resolution, linkage_type=None):
-        x_start = int(x_region.start/resolution)
-        x_end = int(x_region.end/resolution)
-        x_length = x_end - x_start
+    x_start = int(x_region.start/resolution)
+    x_end = int(x_region.end/resolution)
+    x_length = x_end - x_start
 
-        y_start = int(y_region.start/resolution)
-        y_end = int(y_region.end/resolution)
-        y_length = y_end - y_start
+    y_start = int(y_region.start/resolution)
+    y_end = int(y_region.end/resolution)
+    y_length = y_end - y_start
 
-        matrix = np.zeros((x_length, y_length))
+    matrix = np.zeros((x_length, y_length))
 
-        for i in range(matrix.shape[0]):
-            for j in range(matrix.shape[1]):
-                x_linkages = linkages.get((linkage_type, x_region.chrom, x_start + i), set())
-                y_linkages = linkages.get((linkage_type, y_region.chrom, y_start + j), set())
-                shared = x_linkages & y_linkages
-                matrix[i][j] = len(shared)
+    for i in range(matrix.shape[0]):
+        for j in range(matrix.shape[1]):
+            x_linkages = linkages.get((linkage_type, x_region.chrom, x_start + i), set())
+            y_linkages = linkages.get((linkage_type, y_region.chrom, y_start + j), set())
+            shared = x_linkages & y_linkages
+            if None in shared:
+                shared.remove(None)
+            matrix[i][j] = len(shared)
 
-        return matrix
+    return matrix
 
 
 def get_read_linkage(read, linkage_type):
