@@ -32,7 +32,7 @@ class Region():
         self.sv_list = [sv_record]
 
 
-def run_call(bam_fn=None, sv_fn=None, resolution=50,
+def run_call(bam_fn=None, sv_fn=None, resolution=80,
              expand=1000, tenx=None,
              out_dir='./', **args):
     if tenx is None or tenx == 'True':
@@ -66,7 +66,7 @@ def run_call(bam_fn=None, sv_fn=None, resolution=50,
                     matrix_list.append(matrix)
                 matrixs.append(matrix_list)
 
-            out_fn = os.path.join(out_dir, '{}.txt'.format(linkage_type))
+            out_fn = os.path.join(out_dir, '{}_resolution{}.txt'.format(linkage_type, resolution))
             sv_list = sum([region.sv_list for region in region_pair], [])
             if i == 0:
                 mode = 'w'
@@ -101,20 +101,33 @@ def get_regions(sv_fn, expand):
             
 
 def get_linkage_matrix(linkages, x_region, y_region, resolution, linkage_type=None):
-    x_start = int(x_region.start/resolution)
-    x_end = int(x_region.end/resolution)
-    x_length = x_end - x_start
+    x_length = int((x_region.end - x_region.start)/resolution)
+    y_length = int((y_region.end - y_region.start)/resolution)
 
-    y_start = int(y_region.start/resolution)
-    y_end = int(y_region.end/resolution)
-    y_length = y_end - y_start
-
+    #print(x_length)
+    #print(y_length)
     matrix = np.zeros((x_length, y_length))
 
     for i in range(matrix.shape[0]):
         for j in range(matrix.shape[1]):
-            x_linkages = linkages.get((linkage_type, x_region.chrom, x_start + i), set())
+            #print('win, i=',i,'j=',j)
+            win_x_start = x_region.start + i*resolution
+            win_x_end = win_x_start + resolution
+
+            #print('x')
+            x_linkages = get_linkages_from_region(linkages, x_region.chrom, win_x_start, win_x_end, linkage_type, resolution)
+
+
+            win_y_start = y_region.start + j*resolution
+            win_y_end = win_y_start + resolution 
+            #print('y')
+            y_linkages = get_linkages_from_region(linkages, y_region.chrom, win_y_start, win_y_end, linkage_type, resolution)
+
+
+            '''
+            x_linkages = x_linkages + linkages.get((linkage_type, x_region.chrom, x_start + i), set())
             y_linkages = linkages.get((linkage_type, y_region.chrom, y_start + j), set())
+            '''
             shared = x_linkages & y_linkages
             if None in shared:
                 shared.remove(None)
@@ -122,6 +135,16 @@ def get_linkage_matrix(linkages, x_region, y_region, resolution, linkage_type=No
 
     return matrix
 
+def get_linkages_from_region(linkages, chrom, start, end, linkage_type, resolution):
+    res = set()
+    #print(start, end)
+    for i in range(start, end):
+        key = (linkage_type, chrom, i/resolution)
+        #if i == start or i == end -1:
+            #print(key)
+        res = res | linkages.get(key, set())
+    return res
+        
 
 def get_read_linkage(read, linkage_type):
     if linkage_type == 'pair_end':
