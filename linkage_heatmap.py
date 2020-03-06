@@ -196,8 +196,16 @@ def write_heatmap(sv_list, matrixs, region_pair, resolution, out_fn, mode, linka
                 x_region = region_pair[i]
                 x_region_repr = '{}:{}-{}'.format(x_region.chrom, x_region.start, x_region.end)
 
-                f.write('h={}\tv={}\tresolution={}\taxis={},{}\n'.format(
-                    y_region_repr, x_region_repr, resolution, i, j))
+                if i == 0 and j == 0:
+                    axis = 'left-top'
+                if i == 1 and j == 0:
+                    axis = 'right-top'
+                if i == 0 and j == 1:
+                    axis = 'left-bottom'
+                if i == 1 and j == 1:
+                    axis = 'right-bottom'
+                f.write('v={}\th={}\tresolution={}\taxis={}\n'.format(
+                    y_region_repr, x_region_repr, resolution, axis))
                 for row in m:
                     f.write(','.join(str(x) for x in row) + '\n')
 
