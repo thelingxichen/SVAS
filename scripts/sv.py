@@ -244,4 +244,5 @@ class SVRecord():
 def read_vcf(vcf_fn):
     for vcf_record in vcf.Reader(filename=vcf_fn):
         sv_record = SVRecord(vcf_record)
-        yield sv_record
+        if sv_record.id.endswith('_1'):
+            yield sv_record
