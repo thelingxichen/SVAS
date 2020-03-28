@@ -4,7 +4,8 @@
 Linkage Heatmap.
 
 Usage:
-    linkage_heatmap.py call --bam_fn=IN_FILE --sv_fn=IN_FILE [--out_dir=IN_DIR] [--tenx=STR]
+    linkage_heatmap.py callDNA --bam_fn=IN_FILE --sv_fn=IN_FILE [--out_dir=IN_DIR] [--tenx=STR]
+    linkage_heatmap.py callRNA --bam_fn=IN_FILE --sv_fn=IN_FILE [--out_dir=IN_DIR] [--tenx=STR]
     linkage_heatmap.py -h | --help
 
 Options:
@@ -18,6 +19,7 @@ Options:
 import pysam
 import os
 import numpy as np
+import csv
 
 import docopt
 import sv
@@ -32,15 +34,18 @@ class Region():
         self.sv_list = [sv_record]
 
 
-def run_call(bam_fn=None, sv_fn=None, resolution=80,
-             expand=1000, tenx=None,
+def run_call(bam_fn=None, sv_fn=None, regions=None, resolution=80,
+             tenx=None, expand=1000, isDNA=True,
              out_dir='./', **args):
-    if tenx is None or tenx == 'True':
+    if tenx is None or tenx == 'True' or tenx:
         tenx = True
     else:
         tenx = False
 
-    regions = get_regions(sv_fn, expand)
+    if isDNA:
+        regions = get_regions_from_vcf(sv_fn, expand)
+    else:
+        regions = get_regions_from_fusion_tsv(sv_fn, expand)
 
     samfile = pysam.AlignmentFile(bam_fn)
 
@@ -76,28 +81,43 @@ def run_call(bam_fn=None, sv_fn=None, resolution=80,
                           linkage_type)
 
 
-def get_regions(sv_fn, expand):
+def get_regions_from_vcf(sv_fn, expand):
     for sv_record in sv.read_vcf(sv_fn):
-        region_5p = Region(sv_record.chrom_5p,
-                           sv_record.bkpos_5p-expand,
-                           sv_record.bkpos_5p+expand,
-                           sv_record)
-        region_3p = Region(sv_record.chrom_3p,
-                           sv_record.bkpos_3p-expand,
-                           sv_record.bkpos_3p+expand,
-                           sv_record)
+        yield get_region(sv_record, expand)
+   
 
-        if sv_record.chrom_5p == sv_record.chrom_3p:
-            if sv_record.bkpos_5p < sv_record.bkpos_3p:
-                yield (region_5p, region_3p)
-            else:
-                yield (region_3p, region_5p)
+def get_regions_from_fusion_tsv(sv_fn, expand):
+    for row in csv.DictReader(open(sv_fn), delimiter='\t'):
+        sv_record = sv.SVRecord()
+        sv_record.set(chrom_5p=row['up_chr'], bkpos_5p=row['up_pos'], strand_5p=row['up_strand'],
+                      chrom_3p=row['down_chr'], bkpos_3p=row['down_pos'], strand_3p=row['down_strand'],
+                      meta_info={'up_gene': row['#up_gene'],
+                                 'down_gene': row['down_gene'],
+                                 'comments': row['comments']})
+        yield get_region(sv_record, expand)
+
+
+def get_region(sv_record, expand):
+    region_5p = Region(sv_record.chrom_5p,
+                       sv_record.bkpos_5p-expand,
+                       sv_record.bkpos_5p+expand,
+                       sv_record)
+    region_3p = Region(sv_record.chrom_3p,
+                       sv_record.bkpos_3p-expand,
+                       sv_record.bkpos_3p+expand,
+                       sv_record)
+
+    if sv_record.chrom_5p == sv_record.chrom_3p:
+        if sv_record.bkpos_5p < sv_record.bkpos_3p:
+            return (region_5p, region_3p)
         else:
-            chroms = list(map(str, range(1, 23))) + ['X', 'Y']
-            if chroms.index(sv_record.chrom_5p.replace('chr', '')) < chroms.index(sv_record.chrom_3p.replace('chr', '')):
-                yield (region_5p, region_3p)
-            else:
-                yield (region_3p, region_5p)
+            return (region_3p, region_5p)
+    else:
+        chroms = list(map(str, range(1, 23))) + ['X', 'Y']
+        if chroms.index(sv_record.chrom_5p.replace('chr', '')) < chroms.index(sv_record.chrom_3p.replace('chr', '')):
+            return (region_5p, region_3p)
+        else:
+            return (region_3p, region_5p)
             
 
 def get_linkage_matrix(linkages, x_region, y_region, resolution, linkage_type=None):
@@ -161,6 +181,8 @@ def get_read_linkage(read, linkage_type):
 def collect_linkages(samfile, region, resolution, tenx):
     linkages = {}
     for read in samfile.fetch(region.chrom, region.start, region.end):
+        if not read.reference_end:
+            continue
         ref_start = read.pos
         ref_end = read.reference_end
         # igonre I and D first ???
@@ -210,9 +232,11 @@ def write_heatmap(sv_list, matrixs, region_pair, resolution, out_fn, mode, linka
                     f.write(','.join(str(x) for x in row) + '\n')
 
 
-def run(call=None, **args):
-    if call:
-        run_call(**args)
+def run(callDNA=None, callRNA=None, **args):
+    if callDNA:
+        run_call(isDNA=True, **args)
+    if callRNA:
+        run_call(isDNA=False, expand=10000, resolution=500, **args)
 
 
 if __name__ == "__main__":
