@@ -4,7 +4,8 @@
 Read Support.
 
 Usage:
-    read_support.py call --bam_fn=IN_FILE --sv_fn=IN_FILE [--out_dir=OUT_DIR]
+    read_support.py callDNA --bam_fn=IN_FILE --sv_fn=IN_FILE [--out_prefix=STR]
+    read_support.py callRNA --bam_fn=IN_FILE --sv_fn=IN_FILE [--out_prefix=STR]
     read_support.py -h | --help
 
 Options:
@@ -12,7 +13,7 @@ Options:
     --version           Show version.
     --bam_fn=IN_FILE    Path of tumor bam file.
     --sv_fn=IN_FILE     Path of tumor sv vcf file.
-    --out_dir=OUT_DIR   Path of out directory, [default: ./]
+    --out_prefix=STR    Path of out file prefix, [default: ./]
 """
 import numpy as np
 import docopt
@@ -21,12 +22,24 @@ import collections
 import os
 import sv
 
+import linkage_heatmap
+
 
 def run_call(bam_fn=None, sv_fn=None, expand=500,
-             out_dir='./', **args):
-    out_fn = os.path.join(out_dir, 'junc.reads.txt')
+             out_prefix='./', isDNA=True, **args):
+
+    if isDNA:
+        out_fn = os.path.join(out_prefix, 'junc_reads_DNA-Seq.txt')
+    else:
+        out_fn = os.path.join(out_prefix, 'junc_reads_RNA-Seq.txt')
+
     with open(out_fn, 'w') as f:
-        sv_records = sv.read_vcf(sv_fn)
+        
+        if isDNA:
+            sv_records = sv.read_vcf(sv_fn)
+        else:
+            sv_records = linkage_heatmap.read_fusion_tsv(sv_fn) 
+
         for i, record in enumerate(sv_records):
             if record.inner_ins and len(record.inner_ins) >= 10:
                 continue
@@ -63,7 +76,6 @@ def get_split_reads(sv_record, bam_fn):
     for prime, bkpos, read in get_reads(sv_record, samfile):
         if not is_split_read_for_bkpos(prime, bkpos, read):
             continue
-        print(read)
         reads = list(indexed_reads.find(read.query_name))
         if len(reads) == 1:
             continue
@@ -139,31 +151,50 @@ def deal_with_two_reads(reads, chrom, bkpos, prime):
 
 def get_bkpos(read):
     pos = []
-    if read.cigartuples[0][0] in [4, 5]:
+    if read.cigartuples[0][0] == 4:
         '''
-        114H36M or 61S89M
+        61S89M
         from left to right
         '''
         pos.append(('3p', read.pos + read.cigartuples[0][1]))
-    if read.cigartuples[-1][0] in [4, 5]:
+    if read.cigartuples[0][0] == 5:
+        '''
+        114H36M 
+        from left to right
+        '''
+        pos.append(('3p', read.pos ))
+    if read.cigartuples[-1][0] == 4:
         '''
         reference_end points to one past the last aligned residue.
-        114M36S or 61M89S
+        114M36S 
         from right to left
         '''
         pos.append(('5p', read.pos + len(read.query_sequence) - read.cigartuples[-1][1]))
+    if read.cigartuples[-1][0] == 5:
+        '''
+        reference_end points to one past the last aligned residue.
+        61M89H
+        from right to left
+        '''
+        pos.append(('5p', read.pos + len(read.query_sequence) ))
+
     return pos
 
 
 def is_split_read_for_bkpos(prime, bkpos, read, map_q=0, read_q=0, distance=10):
+    # print(read.cigarstring)
+    # print(read.pos, read.reference_end, bkpos)
     if read.is_supplementary:
+        # print('is_supp')
         return False
 
     if read.mapping_quality < map_q:
+        # print('map qual', read.mapping_quality)
         return False
 
     if read.cigartuples[0][0] == 0 and read.cigartuples[-1][0] == 0:
         # start with M and end with M
+        # print('start with M and end with M')
         return False
 
     if np.mean(read.query_qualities) < read_q:
@@ -171,9 +202,11 @@ def is_split_read_for_bkpos(prime, bkpos, read, map_q=0, read_q=0, distance=10):
         read sequence base qualities, including soft clipped bases
         no offset of 33 needs to be subtracted.
         '''
+        # print('read qual', np.mean(read.query_qualities))
         return False
 
     pos = get_bkpos(read)
+    # print(pos)
     flag = False
     for p in pos:
         prime_tmp, p = p
@@ -262,9 +295,11 @@ def get_sv_info(record, junc_reads):
     return(res)
 
 
-def run(call=None, **args):
-    if call:
-        run_call(**args)
+def run(callDNA=None, callRNA=None, **args):
+    if callDNA:
+        run_call(isDNA=True, **args)
+    if callRNA:
+        run_call(isDNA=False, **args)
 
 
 if __name__ == "__main__":

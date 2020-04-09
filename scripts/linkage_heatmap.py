@@ -80,6 +80,11 @@ def get_regions_from_vcf(sv_fn, expand):
    
 
 def get_regions_from_fusion_tsv(sv_fn, expand):
+    for sv_record in read_fusion_tsv(sv_fn):
+        yield get_region(sv_record, expand)
+
+
+def read_fusion_tsv(sv_fn):
     for row in csv.DictReader(open(sv_fn), delimiter='\t'):
         sv_record = sv.SVRecord()
         sv_record.set(chrom_5p=row['up_chr'], bkpos_5p=row['up_pos'], strand_5p=row['up_strand'],
@@ -87,8 +92,7 @@ def get_regions_from_fusion_tsv(sv_fn, expand):
                       meta_info={'up_gene': row['#up_gene'],
                                  'down_gene': row['down_gene'],
                                  'VARTYPE': row['comments']})
-        yield get_region(sv_record, expand)
-
+        yield sv_record 
 
 def get_region(sv_record, expand):
     region_5p = Region(sv_record.chrom_5p,
@@ -225,7 +229,7 @@ def run(callDNA=None, callRNA=None, **args):
     if callDNA:
         run_call(isDNA=True, **args)
     if callRNA:
-        run_call(isDNA=False, expand=15000, resolution=500, **args)
+        run_call(isDNA=False, expand=1000, resolution=50, **args)
 
 
 if __name__ == "__main__":
