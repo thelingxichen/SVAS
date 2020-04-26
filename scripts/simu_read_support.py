@@ -65,20 +65,20 @@ def simu_pe(local_hap, sv_type, span, barcode):
     read1_junc = np.random.randint(2)
     if read1_junc and sv_type in ['ht', 'th']:
         read1_flag, read2_flag = 'JR', 'jr'
-        read1_pos = np.random.randint(-70, -30)
-        read2_pos = np.random.randint(160, 310)
+        read1_pos = np.random.randint(160, 310)
+        read2_pos = np.random.randint(-70, -30)
     elif not read1_junc and sv_type in ['ht', 'th']:
         read1_flag, read2_flag = 'jR', 'Jr'
-        read1_pos = np.random.randint(-310, -160)
-        read2_pos = np.random.randint(-70, -30)
+        read1_pos = np.random.randint(-70, -30)
+        read2_pos = np.random.randint(-310, -160)
     elif read1_junc and sv_type in ['hh', 'tt']:
         read1_flag, read2_flag = 'j', 'J'
         read1_pos = np.random.randint(-70, -30)
         read2_pos = np.random.randint(160, 310)
     elif not read1_junc and sv_type in ['hh', 'tt']:
         read1_flag, read2_flag = 'j', 'J'
-        read1_pos = np.random.randint(-310, -160)
-        read2_pos = np.random.randint(-70, -30)
+        read1_pos = np.random.randint(-70, -30)
+        read2_pos = np.random.randint(-310, -160)
 
     if np.random.randint(2):
         read1_flag += 'd'
