@@ -1,6 +1,5 @@
-# ComplexSV
-Scripts for Complex Structure Variation Analsyis
-
+# SVAS
+SVAS( Somatic Variant Analysis Suite)
 Author: Lingxi Chen
 
 Email: chanlingxi@gmail.com
