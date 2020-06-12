@@ -148,7 +148,7 @@ def get_bkpos(read):
     if read.cigartuples[-1][0] in [4, 5]:
         '''
         reference_end points to one past the last aligned residue.
-        114M36S or 61M89S
+        114M36 or 61M89S
         from right to left
         '''
         pos.append(('5p', read.pos + len(read.query_sequence) - read.cigartuples[-1][1]))
@@ -189,7 +189,7 @@ def get_read_info(read, record, prime, is_split, paired_read):
     if is_split:
         flag += 'j'
     else:
-        flag += 'J'
+        flag += 'J'  #
     if read.is_reverse:
         flag += 'r'
     if paired_read.is_reverse:

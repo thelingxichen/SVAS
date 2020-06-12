@@ -1,0 +1,3 @@
+chrom_5p	pos_5p	strand_5p	chrom_3p	pos_3p	strand_3p	count
+chr22	21000000	+	HotL1_complete#LINE/L1	5000	-	30
+HotL1_complete#LINE/L1	2000	-	chr22	21000000	+	30

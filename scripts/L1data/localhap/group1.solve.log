@@ -1,0 +1,128 @@
+Reading database...
+Read done
+Reading graph...
+``````````````````````````````````````````````````````````````````````````````````````````
+Ploidy: 1
+Avg ploidy: 1
+Avg coverage: 30
+Haploid coverage: 0
+Source: 1
+Sink: 9
+Segments: 9
+Junctions: 17
+``````````````````````````````````````````````````````````````````````````````````````````
+SEG	1	L1HS_1_6000	1	6000	30.0000	inf	[1;31m2.0000[0m	1.0000	ONO	ONO	ONO	NO	NO	NO	ND	LB	NULL	NULL
+SEG	2	L1HS_6000_6064	1	65	30.0000	inf	[1;31m1.0000[0m	1.0000	ONO	ONO	ONO	NO	NO	NO	ND	LB	NULL	NULL
+SEG	3	chr5_10000_20000	1	10001	30.0000	inf	[1;31m1.0000[0m	1.0000	ONO	ONO	ONO	NO	NO	NO	ND	LB	NULL	NULL
+SEG	4	chr5_20000_21000	1	1001	30.0000	inf	[1;31m2.0000[0m	1.0000	ONO	ONO	ONO	NO	NO	NO	ND	LB	NULL	NULL
+SEG	5	chr5_21000_31000	1	10001	30.0000	inf	[1;31m1.0000[0m	1.0000	ONO	ONO	ONO	NO	NO	NO	ND	LB	NULL	NULL
+SEG	6	chr22_21990000_22000000	1	10001	30.0000	inf	[1;31m1.0000[0m	1.0000	ONO	ONO	ONO	NO	NO	NO	ND	LB	NULL	NULL
+SEG	7	chr22_22000000_31000000	1	9000001	30.0000	inf	[1;31m1.0000[0m	1.0000	ONO	ONO	ONO	NO	NO	NO	ND	LB	NULL	NULL
+SEG	8	chr22_31000000_31000100	1	101	30.0000	inf	[1;31m2.0000[0m	1.0000	ONO	ONO	ONO	NO	NO	NO	ND	LB	NULL	NULL
+SEG	9	chr22_31000100_31010100	1	10001	30.0000	inf	[1;31m1.0000[0m	1.0000	ONO	ONO	ONO	NO	NO	NO	ND	LB	NULL	NULL
+JUNC	0	6+=>1+	1-=>6-	30.0000	inf	[1;31m1.0000[0m	1.0000	NI	LB
+JUNC	1	2+=>6+	6-=>2-	30.0000	inf	[1;31m1.0000[0m	1.0000	I	LB
+JUNC	2	1+=>4+	4-=>1-	30.0000	inf	[1;31m1.0000[0m	1.0000	NI	LB
+JUNC	3	5+=>1+	1-=>5-	30.0000	inf	[1;31m1.0000[0m	1.0000	I	LB
+JUNC	4	4+=>8+	8-=>4-	30.0000	inf	[1;31m1.0000[0m	1.0000	NI	LB
+JUNC	5	9+=>3+	3-=>9-	30.0000	inf	[1;31m1.0000[0m	1.0000	I	LB
+JUNC	6	8+=>7+	7-=>8-	30.0000	inf	[1;31m1.0000[0m	1.0000	NI	LB
+JUNC	7	1+=>2+	2-=>1-	30.0000	inf	[1;31m1.0000[0m	1.0000	I	LB
+JUNC	8	2+=>1+	1-=>2-	30.0000	inf	[1;31m0.0000[0m	1.0000	I	LB
+JUNC	9	3+=>4+	4-=>3-	30.0000	inf	[1;31m1.0000[0m	1.0000	I	LB
+JUNC	10	4+=>5+	5-=>4-	30.0000	inf	[1;31m1.0000[0m	1.0000	I	LB
+JUNC	11	5+=>3+	3-=>5-	30.0000	inf	[1;31m0.0000[0m	1.0000	I	LB
+JUNC	12	6+=>7+	7-=>6-	30.0000	inf	[1;31m0.0000[0m	1.0000	I	LB
+JUNC	13	7+=>8+	8-=>7-	30.0000	inf	[1;31m1.0000[0m	1.0000	I	LB
+JUNC	14	8+=>9+	9-=>8-	30.0000	inf	[1;31m1.0000[0m	1.0000	I	LB
+JUNC	15	9+=>6+	6-=>9-	30.0000	inf	[1;31m0.0000[0m	1.0000	I	LB
+JUNC	16	9+=>1+	1-=>9-	30.0000	inf	[1;31m0.0000[0m	1.0000	I	NLB
+``````````````````````````````````````````````````````````````````````````````````````````
+DuplicateJunctionException: 9+=>1+, 1-=>9-
+``````````````````````````````````````````````````````````````````````````````````````````
+Ploidy: 1
+Avg ploidy: 1.0000
+Avg coverage: 30.0000
+Haploid coverage: 0.0000
+Source: 1
+Sink: 9
+Segments: 9
+Junctions: 17
+``````````````````````````````````````````````````````````````````````````````````````````
+SEG	1	L1HS_1_6000	1	6000	30.0000	inf	[1;31m2.0000[0m	1.0000	ONO	ONO	ONO	NO	NO	NO	ND	LB	NULL	NULL
+SEG	2	L1HS_6000_6064	1	65	30.0000	inf	[1;31m1.0000[0m	1.0000	ONO	ONO	ONO	NO	NO	NO	ND	LB	NULL	NULL
+SEG	3	chr5_10000_20000	1	10001	30.0000	inf	[1;31m1.0000[0m	1.0000	ONO	ONO	ONO	NO	NO	NO	ND	LB	NULL	NULL
+SEG	4	chr5_20000_21000	1	1001	30.0000	inf	[1;31m2.0000[0m	1.0000	ONO	ONO	ONO	NO	NO	NO	ND	LB	NULL	NULL
+SEG	5	chr5_21000_31000	1	10001	30.0000	inf	[1;31m1.0000[0m	1.0000	ONO	ONO	ONO	NO	NO	NO	ND	LB	NULL	NULL
+SEG	6	chr22_21990000_22000000	1	10001	30.0000	inf	[1;31m1.0000[0m	1.0000	ONO	ONO	ONO	NO	NO	NO	ND	LB	NULL	NULL
+SEG	7	chr22_22000000_31000000	1	9000001	30.0000	inf	[1;31m1.0000[0m	1.0000	ONO	ONO	ONO	NO	NO	NO	ND	LB	NULL	NULL
+SEG	8	chr22_31000000_31000100	1	101	30.0000	inf	[1;31m2.0000[0m	1.0000	ONO	ONO	ONO	NO	NO	NO	ND	LB	NULL	NULL
+SEG	9	chr22_31000100_31010100	1	10001	30.0000	inf	[1;31m1.0000[0m	1.0000	ONO	ONO	ONO	NO	NO	NO	ND	LB	NULL	NULL
+JUNC	0	6+=>1+	1-=>6-	30.0000	inf	[1;31m1.0000[0m	1.0000	NI	LB
+JUNC	1	2+=>6+	6-=>2-	30.0000	inf	[1;31m1.0000[0m	1.0000	I	LB
+JUNC	2	1+=>4+	4-=>1-	30.0000	inf	[1;31m1.0000[0m	1.0000	NI	LB
+JUNC	3	5+=>1+	1-=>5-	30.0000	inf	[1;31m1.0000[0m	1.0000	I	LB
+JUNC	4	4+=>8+	8-=>4-	30.0000	inf	[1;31m1.0000[0m	1.0000	NI	LB
+JUNC	5	9+=>3+	3-=>9-	30.0000	inf	[1;31m1.0000[0m	1.0000	I	LB
+JUNC	6	8+=>7+	7-=>8-	30.0000	inf	[1;31m1.0000[0m	1.0000	NI	LB
+JUNC	7	1+=>2+	2-=>1-	30.0000	inf	[1;31m1.0000[0m	1.0000	I	LB
+JUNC	8	2+=>1+	1-=>2-	30.0000	inf	[1;31m0.0000[0m	1.0000	I	LB
+JUNC	9	3+=>4+	4-=>3-	30.0000	inf	[1;31m1.0000[0m	1.0000	I	LB
+JUNC	10	4+=>5+	5-=>4-	30.0000	inf	[1;31m1.0000[0m	1.0000	I	LB
+JUNC	11	5+=>3+	3-=>5-	30.0000	inf	[1;31m0.0000[0m	1.0000	I	LB
+JUNC	12	6+=>7+	7-=>6-	30.0000	inf	[1;31m0.0000[0m	1.0000	I	LB
+JUNC	13	7+=>8+	8-=>7-	30.0000	inf	[1;31m1.0000[0m	1.0000	I	LB
+JUNC	14	8+=>9+	9-=>8-	30.0000	inf	[1;31m1.0000[0m	1.0000	I	LB
+JUNC	15	9+=>6+	6-=>9-	30.0000	inf	[1;31m0.0000[0m	1.0000	I	LB
+JUNC	16	9+=>1+	1-=>9-	30.0000	inf	[1;31m0.0000[0m	1.0000	I	NLB
+``````````````````````````````````````````````````````````````````````````````````````````
+Identifying circuits...
+Traversed path: 1+ 4+ 8+ 7+ 8+ 9+ 3+ 4+ 5+ 1+ 2+ 6+ 1+ 
+1 ---- 1+ 2+ 6+ 1+ 
+2 ---- 1+ 4+ 5+ 1+ 
+3 ---- 4+ 8+ 9+ 3+ 4+ 
+4 ---- 8+ 7+ 8+ 
+Write circuits
+``````````````````````````````````````````````````````````````````````````````````````````
+Ploidy: 1
+Avg ploidy: 1.0000
+Avg coverage: 30.0000
+Haploid coverage: 0.0000
+Source: 1
+Sink: 9
+Segments: 9
+Junctions: 17
+``````````````````````````````````````````````````````````````````````````````````````````
+SEG	1	L1HS_1_6000	1	6000	30.0000	inf	[1;31m0.0000[0m	1.0000	ONO	ONO	ONO	NO	NO	NO	ND	LB	NULL	NULL
+SEG	2	L1HS_6000_6064	1	65	30.0000	inf	[1;31m0.0000[0m	1.0000	ONO	ONO	ONO	NO	NO	NO	ND	LB	NULL	NULL
+SEG	3	chr5_10000_20000	1	10001	30.0000	inf	[1;31m0.0000[0m	1.0000	ONO	ONO	ONO	NO	NO	NO	ND	LB	NULL	NULL
+SEG	4	chr5_20000_21000	1	1001	30.0000	inf	[1;31m0.0000[0m	1.0000	ONO	ONO	ONO	NO	NO	NO	ND	LB	NULL	NULL
+SEG	5	chr5_21000_31000	1	10001	30.0000	inf	[1;31m0.0000[0m	1.0000	ONO	ONO	ONO	NO	NO	NO	ND	LB	NULL	NULL
+SEG	6	chr22_21990000_22000000	1	10001	30.0000	inf	[1;31m0.0000[0m	1.0000	ONO	ONO	ONO	NO	NO	NO	ND	LB	NULL	NULL
+SEG	7	chr22_22000000_31000000	1	9000001	30.0000	inf	[1;31m0.0000[0m	1.0000	ONO	ONO	ONO	NO	NO	NO	ND	LB	NULL	NULL
+SEG	8	chr22_31000000_31000100	1	101	30.0000	inf	[1;31m0.0000[0m	1.0000	ONO	ONO	ONO	NO	NO	NO	ND	LB	NULL	NULL
+SEG	9	chr22_31000100_31010100	1	10001	30.0000	inf	[1;31m0.0000[0m	1.0000	ONO	ONO	ONO	NO	NO	NO	ND	LB	NULL	NULL
+JUNC	0	6+=>1+	1-=>6-	30.0000	inf	[1;31m0.0000[0m	1.0000	NI	LB
+JUNC	1	2+=>6+	6-=>2-	30.0000	inf	[1;31m0.0000[0m	1.0000	I	LB
+JUNC	2	1+=>4+	4-=>1-	30.0000	inf	[1;31m0.0000[0m	1.0000	NI	LB
+JUNC	3	5+=>1+	1-=>5-	30.0000	inf	[1;31m0.0000[0m	1.0000	I	LB
+JUNC	4	4+=>8+	8-=>4-	30.0000	inf	[1;31m0.0000[0m	1.0000	NI	LB
+JUNC	5	9+=>3+	3-=>9-	30.0000	inf	[1;31m0.0000[0m	1.0000	I	LB
+JUNC	6	8+=>7+	7-=>8-	30.0000	inf	[1;31m0.0000[0m	1.0000	NI	LB
+JUNC	7	1+=>2+	2-=>1-	30.0000	inf	[1;31m0.0000[0m	1.0000	I	LB
+JUNC	8	2+=>1+	1-=>2-	30.0000	inf	[1;31m0.0000[0m	1.0000	I	LB
+JUNC	9	3+=>4+	4-=>3-	30.0000	inf	[1;31m0.0000[0m	1.0000	I	LB
+JUNC	10	4+=>5+	5-=>4-	30.0000	inf	[1;31m0.0000[0m	1.0000	I	LB
+JUNC	11	5+=>3+	3-=>5-	30.0000	inf	[1;31m0.0000[0m	1.0000	I	LB
+JUNC	12	6+=>7+	7-=>6-	30.0000	inf	[1;31m0.0000[0m	1.0000	I	LB
+JUNC	13	7+=>8+	8-=>7-	30.0000	inf	[1;31m0.0000[0m	1.0000	I	LB
+JUNC	14	8+=>9+	9-=>8-	30.0000	inf	[1;31m0.0000[0m	1.0000	I	LB
+JUNC	15	9+=>6+	6-=>9-	30.0000	inf	[1;31m0.0000[0m	1.0000	I	LB
+JUNC	16	9+=>1+	1-=>9-	30.0000	inf	[1;31m0.0000[0m	1.0000	I	NLB
+``````````````````````````````````````````````````````````````````````````````````````````
+sort circuits
+Insert at 1+
+Insert at 4+
+Insert at 8+
+Mainpath done
+1+ 4+ 8+ 7+ 8+ 9+ 3+ 4+ 5+ 1+ 2+ 6+ 1+ 

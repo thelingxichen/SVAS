@@ -1,21 +1,26 @@
 import copy
 import vcf
 
-class SVRecord():
+from biotool import myio 
+
+class SVRecord(myio.Record):
     fields = 'chrom_5p,bkpos_5p,strand_5p,chrom_3p,bkpos_3p,strand_3p,'
     fields += 'inner_ins,span_reads,junc_reads,id,qual,filter,'
-    fields += 'meta_info'
+    fields += 'group,meta_info'
     fields = fields.split(',')
 
-    def __init__(self, vcf_record):
-        self.parent = vcf_record
-        self.from_parent()
+    def __init__(self, parent=None, *args, **kwargs):
+        super(SVRecord, self).__init__(*args, **kwargs)
+        self.parent = parent 
+        if parent:
+            self.from_parent()
 
     def __repr__(self):
         funcs = (self._format_info if 'info' in field else self._format_value
                  for field in self.fields)
         return '\t'.join(func(getattr(self, field))
                          for field, func in zip(self.fields, funcs))
+
     def _format_value(self, x):  # None, int, float, list
         if x == 0:
             return '0'
@@ -24,8 +29,10 @@ class SVRecord():
         if type(x) == list:
             return self._format_list(x)
         return str(x)
+
     def _format_list(self, x, sep=','):
         return sep.join(map(self._format_value, x))
+
     def _format_pair(self, pair):
         k, v = pair
         if v is True:
@@ -49,7 +56,7 @@ class SVRecord():
         args.update(self._get_general_sv_fields)
         self.set(**args)
 
-    def set(self, chrom_5p=None, bkpos_5p=None, strand_5p=None,
+    def set(self, group=None, chrom_5p=None, bkpos_5p=None, strand_5p=None,
             chrom_3p=None, bkpos_3p=None, strand_3p=None,
             inner_ins=None, span_reads=None, junc_reads=None,
             id=None, qual=None, filter=None,
@@ -64,6 +71,7 @@ class SVRecord():
         self.inner_ins = self._validate(inner_ins)
         self.span_reads = self._validate(span_reads, int)
         self.junc_reads = self._validate(junc_reads, int)
+        self.group = self._validate(group)
         self.id = self._validate(id)
         self.qual = self._validate(qual, float)
         self.filter = self._validate(filter, self._parse_list)
@@ -71,6 +79,7 @@ class SVRecord():
         self.anno_info = self._validate(anno_info, self._parse_info)
 
         self.sample = sample
+
     def _validate(self, x, func=None):
         if func in [None, int, float]:
             if not x:
@@ -83,6 +92,11 @@ class SVRecord():
         if func:
             return func(x)
         return x
+
+    def parse(self, line):  # parse a stream_or_string to sv object
+        args = dict(zip(self.fields, line.strip().split('\t')))
+        self.set(**args)
+
     def _parse_info(self, info):
         if not info:
             return {}
@@ -97,6 +111,7 @@ class SVRecord():
             pairs.append(pair)
 
         return dict(pairs)
+
     def _parse_list(self, line, sep=','):
         if isinstance(line, list):
             return line
@@ -111,6 +126,7 @@ class SVRecord():
         if splits:
             return map(self._parse_value, splits)
         return float(x)
+
     @property
     def _get_general_sv_fields(self):
         args = {}
@@ -150,18 +166,30 @@ class SVRecord():
         alt = self.parent.ALT[0]
 
         # if strand1 == '-' and strand2 == '-':   # inversion
-        if alt.remoteOrientation and alt.orientation:   
+        if alt.remoteOrientation and alt.orientation:
             # [p[t tt-inversion
             args['strand_5p'] = '-'
             args['strand_3p'] = '+'
         # elif strand1 == '+' and strand2 == '+':  # inversion
-        elif not alt.remoteOrientation and not alt.orientation:  
+        elif not alt.remoteOrientation and not alt.orientation:
             # t]p] hh-inversion
             args['strand_5p'] = '+'
             args['strand_3p'] = '-'
         else:                                   # not inversion
             args['strand_5p'] = '+'
             args['strand_3p'] = '+'
+
+        if alt.chr == 'MT':
+            alt.chr == 'chrM'
+
+        number_chrs = list(map(str, range(1, 23))) + ['X', 'Y']
+        if alt.chr in number_chrs:
+            alt.chr = 'chr' + alt.chr
+
+        if self.parent.CHROM == 'MT':
+            self.parent.CHROM == 'chrM'
+        if self.parent.CHROM in number_chrs:
+            self.parent.CHROM = 'chr' + self.parent.CHROM
 
         if not alt.remoteOrientation and alt.orientation:
             # t[p[ ht
@@ -183,10 +211,31 @@ class SVRecord():
 
         return args
 
+    def __eq__(self, other, allowance=10):
+        return self.var_type == other.var_type \
+            and self.chrom_5p == other.chrom_5p \
+            and self._pos_eq(self.bkpos_5p, other.bkpos_5p, allowance) \
+            and self.strand_5p == other.strand_5p \
+            and self.chrom_3p == other.chrom_3p \
+            and self._pos_eq(self.bkpos_3p, other.bkpos_3p, allowance) \
+            and self.strand_3p == other.strand_3p
+
+    @staticmethod
+    def _pos_eq(self, self_pos, other_pos, allowance=10):
+        return self_pos >= other_pos - allowance \
+            and self_pos <= other_pos + allowance
+
+    @property
+    def precise(self):
+        if self.junc_reads >= 10:
+            return True
+        else:
+            return False
+
     @property
     def orientation(self):
         '''
-        update orientation in 2020.02.13, 
+        update orientation in 2020.02.13,
         chrom bkpos strand result is correct, won't affect localhap
         '''
         '''
@@ -196,18 +245,26 @@ class SVRecord():
         breakend is tail (based on - strand): alt.orientation == False
         '''
         if not self.parent:
-            return self.meta_info.get('JOINTYPE', None)
+            return None 
 
         alt = self.parent.ALT[0]
         if alt.remoteOrientation and alt.orientation:
             o = 'tt'
-        elif not alt.remoteOrientation and not alt.orientation:  
+        elif not alt.remoteOrientation and not alt.orientation:
             o = 'hh'
         else:
             o = 'h' if alt.remoteOrientation else 't'   # self.parent.POS point
             o += 'h' if alt.orientation else 't'        # breakend point
 
         return o
+    
+    @property
+    def bkpos_5p_orientation(self):
+        return self.orientation[0]
+
+    @property
+    def bkpos_3p_orientation(self):
+        return self.orientation[1]
 
     @property
     def sv_type(self):
@@ -231,6 +288,7 @@ class SVRecord():
             return 'DUP-'+orientation
         else:   # 'hh' or 'tt'
             return 'INV-'+orientation
+
     @property
     def var_type(self):
         try:
@@ -241,8 +299,43 @@ class SVRecord():
         except Exception:
             return self.meta_info.get('VARTYPE', None)
 
+
 def read_vcf(vcf_fn):
     for vcf_record in vcf.Reader(filename=vcf_fn):
         sv_record = SVRecord(vcf_record)
         if sv_record.id.endswith('_1'):
             yield sv_record
+
+def read_sv_group(sv_fn, group_header):
+    reader = myio.Reader(in_fn=sv_fn, record_cls=SVRecord, sep='\t', has_header=True)
+    return reader.read_chunks(group_header)
+
+
+def get_orientation_by_strand(r, contig_list):
+    if r.strand_5p == '+' and r.strand_3p == '-':
+        return 'hh' 
+    if r.strand_5p == '-' and r.strand_3p == '+':
+        return 'tt'
+    if r.strand_5p == '+' and r.strand_3p == '+':
+        if r.chrom_5p == r.chrom_3p:
+            if r.bkpos_5p < r.bkpos_3p:
+                return 'ht'
+            else:
+                return 'th'
+        elif contig_list.index(r.chrom_5p) < contig_list.index(r.chrom_3p):
+            return 'ht'
+        else:
+            return 'th'
+    if r.strand_5p == '-' and r.strand_3p == '-':
+        if r.chrom_5p == r.chrom_3p:
+            if r.bkpos_5p < r.bkpos_3p:
+                return 'th'
+            else:
+                return 'ht'
+        elif contig_list.index(r.chrom_5p) < contig_list.index(r.chrom_3p):
+            return 'th'
+        else:
+            return 'ht'
+
+    return None
+
