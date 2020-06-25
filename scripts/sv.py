@@ -1,7 +1,7 @@
 import copy
 import vcf
 
-from biotool import myio 
+from biotool import myio
 
 class SVRecord(myio.Record):
     fields = 'chrom_5p,bkpos_5p,strand_5p,chrom_3p,bkpos_3p,strand_3p,'
@@ -11,7 +11,7 @@ class SVRecord(myio.Record):
 
     def __init__(self, parent=None, *args, **kwargs):
         super(SVRecord, self).__init__(*args, **kwargs)
-        self.parent = parent 
+        self.parent = parent
         if parent:
             self.from_parent()
 
@@ -245,7 +245,7 @@ class SVRecord(myio.Record):
         breakend is tail (based on - strand): alt.orientation == False
         '''
         if not self.parent:
-            return None 
+            return None
 
         alt = self.parent.ALT[0]
         if alt.remoteOrientation and alt.orientation:
@@ -257,7 +257,7 @@ class SVRecord(myio.Record):
             o += 'h' if alt.orientation else 't'        # breakend point
 
         return o
-    
+
     @property
     def bkpos_5p_orientation(self):
         return self.orientation[0]
@@ -313,7 +313,7 @@ def read_sv_group(sv_fn, group_header):
 
 def get_orientation_by_strand(r, contig_list):
     if r.strand_5p == '+' and r.strand_3p == '-':
-        return 'hh' 
+        return 'hh'
     if r.strand_5p == '-' and r.strand_3p == '+':
         return 'tt'
     if r.strand_5p == '+' and r.strand_3p == '+':
