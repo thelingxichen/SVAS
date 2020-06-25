@@ -156,7 +156,7 @@ def get_bkpos(read):
         61S89M
         from left to right
         '''
-        pos.append(('3p', read.pos + read.cigartuples[0][1]))
+        pos.append(('3p', read.pos))
     if read.cigartuples[0][0] == 5:
         '''
         114H36M 
@@ -166,8 +166,10 @@ def get_bkpos(read):
     if read.cigartuples[-1][0] == 4:
         '''
         reference_end points to one past the last aligned residue.
-        114M36 or 61M89S
+        114M36S or 61M89S
         from right to left
+
+        read.query_sequence include soft-clipped bases
         '''
         pos.append(('5p', read.pos + len(read.query_sequence) - read.cigartuples[-1][1]))
     if read.cigartuples[-1][0] == 5:
