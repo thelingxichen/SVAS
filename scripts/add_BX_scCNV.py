@@ -22,14 +22,19 @@ def run_call(bam_fn=None, replace_RG=None,**args):
 
     fn = bam_fn.replace('.bam', '.BX.bam')
     samfile = pysam.AlignmentFile(bam_fn, "rb")
-    with pysam.AlignmentFile(fn, "wb", template=samfile) as bamfile:
+
+    header = str(samfile.header)
+    if replace_RG: 
+        str1, str2 = replace_RG.split(',')
+        header = header.replace(str1, str2)
+
+    with pysam.AlignmentFile(fn, "wb", text=header) as bamfile:
 
         for i, read in enumerate(samfile.fetch()):
 
             if read.has_tag('CB'):
                 read.tags += [('BX', read.get_tag('CB'))]
             if replace_RG and read.has_tag('RG'):
-                str1, str2 = replace_RG.split(',')
                 tag = read.get_tag('RG').replace(str1, str2)
                 read.set_tag('RG', tag)
 
