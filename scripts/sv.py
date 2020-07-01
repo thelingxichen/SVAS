@@ -3,6 +3,7 @@ import vcf
 
 from biotool import myio
 
+
 class SVRecord(myio.Record):
     fields = 'chrom_5p,bkpos_5p,strand_5p,chrom_3p,bkpos_3p,strand_3p,'
     fields += 'inner_ins,span_reads,junc_reads,id,qual,filter,'
@@ -300,11 +301,15 @@ class SVRecord(myio.Record):
             return self.meta_info.get('VARTYPE', None)
 
 
-def read_vcf(vcf_fn):
+def read_vcf(vcf_fn, precise=True):
     for vcf_record in vcf.Reader(filename=vcf_fn):
         sv_record = SVRecord(vcf_record)
-        if sv_record.id.endswith('_1'):
-            yield sv_record
+        if sv_record.id.endswith('_2'):
+            continue
+        if precise and (not sv_record.precise):
+            continue
+        yield sv_record
+
 
 def read_sv_group(sv_fn, group_header):
     reader = myio.Reader(in_fn=sv_fn, record_cls=SVRecord, sep='\t', has_header=True)
@@ -338,4 +343,3 @@ def get_orientation_by_strand(r, contig_list):
             return 'ht'
 
     return None
-
