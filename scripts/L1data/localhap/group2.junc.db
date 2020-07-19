@@ -1,4 +1,0 @@
-chrom_5p	pos_5p	strand_5p	chrom_3p	pos_3p	strand_3p	count
-chr22	23000000	+	chr5	30000	+	30
-chr5	31000	+	chr22	32000000	+	30
-chr22	32000100	+	chr22	23000000	+	30

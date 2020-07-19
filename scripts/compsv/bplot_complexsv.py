@@ -23,12 +23,9 @@ Others:
     @License: LICENSE_NAME, see LICENSE for more details.
 """
 
-from tenxtools.mydocopt import docopt
-from tenxtools.sv import svaba
-from tenxtools.utils import myio
-
 from biotool.bplot import svgfigure
 from biotool.bplot import svgobject
+from biotool import myio
 
 
 class SVJoin(svgobject.SVGObject):
@@ -216,7 +213,7 @@ class RegionGroupsPlot(svgfigure.SVGFigure):
                 # print(sv.chrom_5p, sv.bkpos_5p/linkage_distance, sv.chrom_3p, sv.bkpos_3p/linkage_distance, sv.orientation)
                 is_5p = [i for i, b in enumerate(bs_5p) if b]
                 is_3p = [i for i, b in enumerate(bs_3p) if b]
-                if len(is_5p) > 1 or len(is_3p) > 1:
+                if len(is_5p) > 1 or len(is_3p) > 1 or len(is_5p) == 0 or len(is_3p) == 0:   # check this bug
                     print('Error is_5p > 1 or is_3p > 1')
                     print([group.region_list[i] for i in is_5p])
                     print([group.region_list[i] for i in is_3p])
@@ -368,10 +365,10 @@ def run_call(sample=None, region_fn=None, sv_fn=None, **args):
             continue
 
     # res = {}
+    '''
     for i, record in enumerate(svaba.SVReader(in_fn=sv_fn, sample=sample)):
-        if i > 10:
-            break
         meta, record = record
+    '''
     # run_draw(region_fn, records)
 
 

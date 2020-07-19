@@ -11,7 +11,7 @@
     @License: LICENSE_NAME, see LICENSE for more details.
 
 Usage:
-    complexsv.py call --sv_fn=IN_FILE --out_dir=OUT_DIR [--sample_name=STR]
+    complexsv.py call --sv_fn=IN_FILE --out_dir=OUT_DIR [--sample=STR]
     complexsv.py -h | --help
 
 Options:
@@ -110,9 +110,6 @@ class ComplexSVRegionGroupGenerator():
 
     def _group_sv(self, minimal_distance=1000):  # 1k
         for i, record in enumerate(self.sv_records):
-            if i > 50:
-                # break
-                pass
             if record.chrom_5p not in constants.chrs or record.chrom_3p not in constants.chrs:
                 continue
             if record.chrom_5p == record.chrom_3p and \
@@ -158,14 +155,10 @@ class ComplexSVRegionGroupGenerator():
 
 
 def run_call(**args):
-    '''
     regions = [base.Region(chrom=chrom, start=0, end=constants.hg19_fai_bp[chrom]) for chrom in constants.chrs]
-    print(regions)
-    region = base.Region(chrom='chr7', start=13500000, end=15000000)
-    groups = [base.RegionGroup(region_list=[region])]
-    '''
+    groups = [base.RegionGroup(region_list=regions)]
     groups = []
-    sv_records = sv.read_vcf(args['sv_fn'])
+    sv_records = sv.read_vcf(args['sv_fn'], id2genes=args['id2genes'])
 
     groups = ComplexSVRegionGroupGenerator(
         groups=groups,
@@ -175,8 +168,8 @@ def run_call(**args):
     groups = list(groups)
 
     for g in groups:
-        print('group', g.group_type, g.region_list)
-        write_group(g, args['out_dir'], args['sample_name'])
+        # print('group', g.group_type, g.region_list)
+        write_group(g, args['out_dir'], args['sample'])
 
     data = {}
     for group in groups:
@@ -187,7 +180,7 @@ def run_call(**args):
             data[meta] = [(meta, group)]
 
     for meta, group_list in data.items():
-        out_prefix = os.path.join(args['out_dir'], '{}.{}.region'.format(args['sample_name'], meta))
+        out_prefix = os.path.join(args['out_dir'], '{}.{}.region'.format(args['sample'], meta))
         bplot_complexsv.run(draw=True,
                             groups=group_list,
                             out_prefix=out_prefix,
@@ -209,6 +202,8 @@ def write_group(group, out_dir, sample):
                 if sv_re.id not in sv_ids:
                     sv_f.write('{}\n'.format(sv_re))
                     sv_ids.add(sv_re.id)
+                if sv_re.gene:
+                    print(group, sv_re.gene)
 
 
 def run(call=None, **args):

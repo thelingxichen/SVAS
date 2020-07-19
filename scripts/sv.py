@@ -7,7 +7,7 @@ from biotool import myio
 class SVRecord(myio.Record):
     fields = 'chrom_5p,bkpos_5p,strand_5p,chrom_3p,bkpos_3p,strand_3p,'
     fields += 'inner_ins,span_reads,junc_reads,id,qual,filter,'
-    fields += 'group,meta_info'
+    fields += 'group,meta_info,gene_5p,gene_3p'
     fields = fields.split(',')
 
     def __init__(self, parent=None, *args, **kwargs):
@@ -62,10 +62,13 @@ class SVRecord(myio.Record):
             inner_ins=None, span_reads=None, junc_reads=None,
             id=None, qual=None, filter=None,
             meta_info=None, anno_info=None,
+            gene_5p=None, gene_3p=None,
             sample=None):
+        self.gene_5p = self._validate(gene_5p)
         self.chrom_5p = self._validate(chrom_5p)
         self.bkpos_5p = self._validate(bkpos_5p, int)
         self.strand_5p = self._validate(strand_5p)
+        self.gene_3p = self._validate(gene_3p)
         self.chrom_3p = self._validate(chrom_3p)
         self.bkpos_3p = self._validate(bkpos_3p, int)
         self.strand_3p = self._validate(strand_3p)
@@ -301,13 +304,20 @@ class SVRecord(myio.Record):
             return self.meta_info.get('VARTYPE', None)
 
 
-def read_vcf(vcf_fn, precise=True):
+def read_vcf(vcf_fn, precise=True, id2genes={}):
     for vcf_record in vcf.Reader(filename=vcf_fn):
         sv_record = SVRecord(vcf_record)
         if sv_record.id.endswith('_2'):
             continue
         if precise and (not sv_record.precise):
             continue
+
+        id = sv_record.id.split('_')[0]
+        if id in id2genes:
+            sv_record.gene = list(id2genes[id])
+        else:
+            sv_record.gene = []
+
         yield sv_record
 
 

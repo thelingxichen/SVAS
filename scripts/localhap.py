@@ -1,6 +1,6 @@
 import sv
 
-def get_segments(group, contig2length, margin=10000):
+def get_segments(group, contig2length, margin=100000):
 
     contig2bp = {}
 
@@ -84,7 +84,6 @@ def encode_sv(sv_records, bp2seg, seg2segid, contig2length, contig2seg):
             r.strand_5p = '+'
             r.strand_3p = '+'
 
-        print(r)
         bp_5p = (r.chrom_5p, r.bkpos_5p) 
         bp_3p = (r.chrom_3p, r.bkpos_3p) 
 
@@ -180,12 +179,14 @@ SINK H:{}
     return res
 
 
-def encode_junc_db(group):
-    res = 'chrom_5p\tpos_5p\tstrand_5p\tchrom_3p\tpos_3p\tstrand_3p\tcount\n'
+def encode_junc_db(group, contig2length):
+    res = 'chrom_5p\tpos_5p\tstrand_5p\tchrom_3p\tpos_3p\tstrand_3p\tcount\tjoin_type\tgene_5p\tgene_3p\n'
     for r in group:
-        res += '{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
+        join_type = sv.get_orientation_by_strand(r, list(contig2length.keys()))
+        res += '{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
             r.chrom_5p, r.bkpos_5p, r.strand_5p,
             r.chrom_3p, r.bkpos_3p, r.strand_3p,
-            30
+            30, join_type,
+            r.gene_5p, r.gene_3p 
         )
     return res

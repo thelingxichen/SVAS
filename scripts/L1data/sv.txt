@@ -1,1 +1,0 @@
-/home/wangjingwan/workspace/TE/3.svaba_get_L1_sv/6.non-L1-sv-normal/4.extend_ref/sv_fn.adj.non-L1-sv-tumor.L1.svaba.unfiltered.sv.vcf.txt
