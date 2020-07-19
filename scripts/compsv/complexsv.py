@@ -194,7 +194,8 @@ def write_group(group, out_dir, sample):
         os.makedirs(out_dir)
     sv_ids = set()
     out_prefix = os.path.join(out_dir, '{}.{}'.format(sample, group.group_name))
-    with open(out_prefix + '.sv', 'w') as sv_f, open(out_prefix + '.region', 'w') as region_f:
+    with open(out_prefix + '.sv', 'w') as sv_f, \
+        open(out_prefix + '.region', 'w') as region_f:
         for region in group.region_list:
             region_f.write('{}:{}-{}\n'.format(region.chrom, region.start, region.end))
             # write sv
@@ -203,7 +204,8 @@ def write_group(group, out_dir, sample):
                     sv_f.write('{}\n'.format(sv_re))
                     sv_ids.add(sv_re.id)
                 if sv_re.gene:
-                    print(group, sv_re.gene)
+                    with open(out_prefix + '.gene', 'w') as gene_f:
+                        gene_f.write('{}\t{}\n'.format(group.group_name, ','.join(sv_re.gene)))
 
 
 def run(call=None, **args):
