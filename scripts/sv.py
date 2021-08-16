@@ -1,7 +1,7 @@
 import copy
 import vcf
 
-from biotool import myio
+from bioutensil import myio
 
 
 class SVRecord(myio.Record):
