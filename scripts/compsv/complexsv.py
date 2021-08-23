@@ -35,10 +35,12 @@ from compsv import bplot_complexsv
 
 class ComplexSVRegionGroupGenerator():
 
-    def __init__(self, sv_records=None, groups=None, bam_fn=None, *args, **kwargs):
+    def __init__(self, sv_records=None, groups=None, bam_fn=None, 
+        id2genes=None, *args, **kwargs):
         self.sv_records = sv_records or []
         self.groups = groups or []
         self.bam_fn = bam_fn
+        self.id2genes = id2genes or {}
 
     def call(self):
         self._group_sv()
@@ -115,6 +117,8 @@ class ComplexSVRegionGroupGenerator():
             if record.chrom_5p == record.chrom_3p and \
                     abs(record.bkpos_5p - record.bkpos_3p) < minimal_distance:
                 continue
+            genes = list(self.id2genes.get(record.id[:-2], []))
+            record.genes = genes
             self._append_sv_to_groups(record)
 
     def _append_sv_to_groups(self, record):  # code review
@@ -158,7 +162,7 @@ def run_call(**args):
     regions = [base.Region(chrom=chrom, start=0, end=constants.hg19_fai_bp[chrom]) for chrom in constants.chrs]
     groups = [base.RegionGroup(region_list=regions)]
     groups = []
-    sv_records = sv.read_vcf(args['sv_fn'], id2genes=args['id2genes'])
+    sv_records = sv.read_vcf(args['sv_fn'], **args)
 
     groups = ComplexSVRegionGroupGenerator(
         groups=groups,
@@ -167,9 +171,7 @@ def run_call(**args):
     ).call()
     groups = list(groups)
 
-    for g in groups:
-        # print('group', g.group_type, g.region_list)
-        write_group(g, args['out_dir'], args['sample'])
+    write_groups(groups, args['out_dir'], args['sample'])
 
     data = {}
     for group in groups:
@@ -188,24 +190,33 @@ def run_call(**args):
     return groups, None
 
 
-def write_group(group, out_dir, sample):
-    out_dir = os.path.join(out_dir, group.group_type, group.group_name)
+def write_groups(groups, out_dir, sample):
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
     sv_ids = set()
-    out_prefix = os.path.join(out_dir, '{}.{}'.format(sample, group.group_name))
-    with open(out_prefix + '.sv', 'w') as sv_f, \
-        open(out_prefix + '.region', 'w') as region_f:
-        for region in group.region_list:
-            region_f.write('{}:{}-{}\n'.format(region.chrom, region.start, region.end))
-            # write sv
-            for sv_re in region.sv_list:
-                if sv_re.id not in sv_ids:
-                    sv_f.write('{}\n'.format(sv_re))
-                    sv_ids.add(sv_re.id)
-                if sv_re.gene:
-                    with open(out_prefix + '.gene', 'w') as gene_f:
-                        gene_f.write('{}\t{}\n'.format(group.group_name, ','.join(sv_re.gene)))
+    out_prefix = os.path.join(out_dir, '{}'.format(sample))
+    print('=====', out_prefix)
+    with open(out_prefix + '.sv.txt', 'w') as sv_f, \
+        open(out_prefix + '.region.txt', 'w') as region_f:
+        header = ['chrom_5p', 'bkpos_5p', 'strand_5p', 'chrom_3p', 'bkpos_3p', 'strand_3p', 'junc_reads', 'group', 'type', 'clone', 'genes', 'sample']
+        sv_f.write('{}\n'.format('\t'.join(header)))
+
+        for group in groups:
+            for region in group.region_list:
+                region_f.write('{}\t{}:{}-{}\n'.format(group.group_name, region.chrom, region.start, region.end))
+                # write sv
+                for sv_re in region.sv_list:
+                    if sv_re.id not in sv_ids:
+                        clone_prev = sv_re.meta_info.get('CLONE_PREV', {})
+                        clone_prev = ','.join([ '{}={}'.format(c,f) for c, f in clone_prev.items()])
+                        sv_str = '\t'.join(map(str, [
+                            sv_re.chrom_5p, sv_re.bkpos_5p, sv_re.strand_5p,
+                            sv_re.chrom_3p, sv_re.bkpos_3p, sv_re.strand_3p,
+                            sv_re.junc_reads, group.group_name, sv_re.sv_type2, clone_prev,
+                            ','.join(sv_re.genes), sample
+                            ]))
+                        sv_f.write('{}\n'.format(sv_str))
+                        sv_ids.add(sv_re.id)
 
 
 def run(call=None, **args):
