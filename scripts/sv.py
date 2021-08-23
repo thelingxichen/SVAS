@@ -1,13 +1,14 @@
 import copy
 import vcf
+import collections
 
-from biotool import myio
+from bioutensil import myio
 
 
 class SVRecord(myio.Record):
     fields = 'chrom_5p,bkpos_5p,strand_5p,chrom_3p,bkpos_3p,strand_3p,'
     fields += 'inner_ins,span_reads,junc_reads,id,qual,filter,'
-    fields += 'group,meta_info,gene_5p,gene_3p'
+    fields += 'group,meta_info,gene_5p,gene_3p,clone,genes,type,avg_cn'
     fields = fields.split(',')
 
     def __init__(self, parent=None, *args, **kwargs):
@@ -62,7 +63,8 @@ class SVRecord(myio.Record):
             inner_ins=None, span_reads=None, junc_reads=None,
             id=None, qual=None, filter=None,
             meta_info=None, anno_info=None,
-            gene_5p=None, gene_3p=None,
+            gene_5p=None, gene_3p=None, clone=None, genes=None, type=None,
+            avg_cn=None,
             sample=None):
         self.gene_5p = self._validate(gene_5p)
         self.chrom_5p = self._validate(chrom_5p)
@@ -81,6 +83,10 @@ class SVRecord(myio.Record):
         self.filter = self._validate(filter, self._parse_list)
         self.meta_info = self._validate(meta_info, self._parse_info)
         self.anno_info = self._validate(anno_info, self._parse_info)
+        self.clone = self._validate(clone)
+        self.genes = self._validate(genes)
+        self.type = self._validate(type)
+        self.avg_cn = self._validate(avg_cn, float)
 
         self.sample = sample
 
@@ -304,7 +310,7 @@ class SVRecord(myio.Record):
             return self.meta_info.get('VARTYPE', None)
 
 
-def read_vcf(vcf_fn, precise=True, id2genes={}):
+def read_vcf(vcf_fn, precise=True, id2genes={}, barcode2clone={}, **args):
     for vcf_record in vcf.Reader(filename=vcf_fn):
         sv_record = SVRecord(vcf_record)
         if sv_record.id.endswith('_2'):
@@ -318,7 +324,19 @@ def read_vcf(vcf_fn, precise=True, id2genes={}):
         else:
             sv_record.gene = []
 
+        if barcode2clone:
+            add_barcode_clone(sv_record, barcode2clone)
+
         yield sv_record
+
+
+def add_barcode_clone(sv_record, barcode2clone):
+    bcs = sv_record.meta_info.get('BX', [])
+    clones = [barcode2clone.get(bc.split('_')[0], '') for bc in bcs]
+    sv_record.meta_info['CLONE'] = clones
+    clone_prev = collections.Counter(c for c in clones if c)
+    clone_prev = {c: f for c, f in clone_prev.items()}
+    sv_record.meta_info['CLONE_PREV'] = clone_prev
 
 
 def read_sv_group(sv_fn, group_header):
