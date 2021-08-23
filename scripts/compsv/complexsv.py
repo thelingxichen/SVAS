@@ -19,7 +19,7 @@ Options:
     --version           Show version.
     --sv_fn=IN_FILE     Path of SvABA sv vcf file.
     --out_dir=OUT_DIR   Path of output directory.
-    --sample            Sample name.
+    --sample=STR        Sample name.
 """
 
 import os
@@ -162,7 +162,7 @@ def run_call(**args):
     regions = [base.Region(chrom=chrom, start=0, end=constants.hg19_fai_bp[chrom]) for chrom in constants.chrs]
     groups = [base.RegionGroup(region_list=regions)]
     groups = []
-    sv_records = sv.read_vcf(args['sv_fn'], **args)
+    sv_records = sv.read_vcf(args['sv_fn']) #, id2genes=args['id2genes'])
 
     groups = ComplexSVRegionGroupGenerator(
         groups=groups,

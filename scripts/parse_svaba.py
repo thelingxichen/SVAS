@@ -19,7 +19,7 @@ import sv
 def run_call(sv_fn=None, **args):
     out_fn = sv_fn + '.txt'
     with open(out_fn, 'w') as f:
-        sv_records = sv.read_vcf(sv_fn)
+        sv_records = sv.read_vcf(sv_fn, precise=False)
         for i, record in enumerate(sv_records):
             f.write(str(record) + '\n')
 
