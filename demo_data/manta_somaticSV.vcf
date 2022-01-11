@@ -1,0 +1,41 @@
+##fileformat=VCFv4.1
+##fileDate=20180829
+##source=GenerateSVCandidates 1.4.0-1-g1f363ea-dirty
+##reference=file:///bioinfoSD/users/xchen/manta_build/MANTA-1385/share/demo/manta/data/Homo_sapiens_assembly19.COST16011_region.fa
+##contig=<ID=8,length=146364022>
+##contig=<ID=11,length=135006516>
+##INFO=<ID=IMPRECISE,Number=0,Type=Flag,Description="Imprecise structural variation">
+##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of structural variant">
+##INFO=<ID=SVLEN,Number=.,Type=Integer,Description="Difference in length between REF and ALT alleles">
+##INFO=<ID=END,Number=1,Type=Integer,Description="End position of the variant described in this record">
+##INFO=<ID=CIPOS,Number=2,Type=Integer,Description="Confidence interval around POS">
+##INFO=<ID=CIEND,Number=2,Type=Integer,Description="Confidence interval around END">
+##INFO=<ID=CIGAR,Number=A,Type=String,Description="CIGAR alignment for each alternate indel allele">
+##INFO=<ID=MATEID,Number=.,Type=String,Description="ID of mate breakend">
+##INFO=<ID=EVENT,Number=1,Type=String,Description="ID of event associated to breakend">
+##INFO=<ID=HOMLEN,Number=.,Type=Integer,Description="Length of base pair identical homology at event breakpoints">
+##INFO=<ID=HOMSEQ,Number=.,Type=String,Description="Sequence of base pair identical homology at event breakpoints">
+##INFO=<ID=SVINSLEN,Number=.,Type=Integer,Description="Length of insertion">
+##INFO=<ID=SVINSSEQ,Number=.,Type=String,Description="Sequence of insertion">
+##INFO=<ID=LEFT_SVINSSEQ,Number=.,Type=String,Description="Known left side of insertion for an insertion of unknown length">
+##INFO=<ID=RIGHT_SVINSSEQ,Number=.,Type=String,Description="Known right side of insertion for an insertion of unknown length">
+##INFO=<ID=BND_DEPTH,Number=1,Type=Integer,Description="Read depth at local translocation breakend">
+##INFO=<ID=MATE_BND_DEPTH,Number=1,Type=Integer,Description="Read depth at remote translocation mate breakend">
+##INFO=<ID=SOMATIC,Number=0,Type=Flag,Description="Somatic mutation">
+##INFO=<ID=SOMATICSCORE,Number=1,Type=Integer,Description="Somatic variant quality score">
+##INFO=<ID=JUNCTION_SOMATICSCORE,Number=1,Type=Integer,Description="If the SV junctino is part of an EVENT (ie. a multi-adjacency variant), this field provides the SOMATICSCORE value for the adjacency in question only">
+##FORMAT=<ID=PR,Number=.,Type=Integer,Description="Spanning paired-read support for the ref and alt alleles in the order listed">
+##FORMAT=<ID=SR,Number=.,Type=Integer,Description="Split reads for the ref and alt alleles in the order listed, for reads where P(allele|read)>0.999">
+##FILTER=<ID=MinSomaticScore,Description="Somatic score is less than 30">
+##FILTER=<ID=MaxMQ0Frac,Description="For a small variant (<1000 bases) in the normal sample, the fraction of reads with MAPQ0 around either breakend exceeds 0.4">
+##ALT=<ID=DEL,Description="Deletion">
+##ALT=<ID=INS,Description="Insertion">
+##ALT=<ID=DUP:TANDEM,Description="Tandem Duplication">
+##cmdline=/bioinfoSD/users/xchen/manta_build/MANTA-1385/bin/configManta.py --normalBam=/bioinfoSD/users/xchen/manta_build/MANTA-1385/share/demo/manta/data/HCC1954.NORMAL.30x.compare.COST16011_region.bam --tumorBam=/bioinfoSD/users/xchen/manta_build/MANTA-1385/share/demo/manta/data/G15512.HCC1954.1.COST16011_region.bam --referenceFasta=/bioinfoSD/users/xchen/manta_build/MANTA-1385/share/demo/manta/data/Homo_sapiens_assembly19.COST16011_region.fa --region=8:107652000-107655000 --region=11:94974000-94989000 --candidateBins=4 --exome --runDir=MantaDemoAnalysis
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	HCC1954_BL	HCC1954
+8	107653411	MantaBND:0:0:2:0:0:0:1	T	]11:94987872]T	.	PASS	SVTYPE=BND;MATEID=MantaBND:0:0:2:0:0:0:0;SOMATIC;SOMATICSCORE=35;BND_DEPTH=26;MATE_BND_DEPTH=39	PR:SR	32,0:28,0	489,4:520,19
+8	107653518	MantaBND:0:0:1:0:0:0:1	G	G]11:94975749]	.	PASS	SVTYPE=BND;MATEID=MantaBND:0:0:1:0:0:0:0;CIPOS=0,2;HOMLEN=2;HOMSEQ=AA;SOMATIC;SOMATICSCORE=36;BND_DEPTH=32;MATE_BND_DEPTH=32	PR:SR	43,0:38,0	722,9:463,15
+11	94975747	MantaBND:0:0:1:0:0:0:0	G	G]8:107653520]	.	PASS	SVTYPE=BND;MATEID=MantaBND:0:0:1:0:0:0:1;CIPOS=0,2;HOMLEN=2;HOMSEQ=TT;SOMATIC;SOMATICSCORE=36;BND_DEPTH=32;MATE_BND_DEPTH=32	PR:SR	43,0:38,0	722,9:463,15
+11	94975753	MantaBND:0:1:2:0:0:0:0	T	T]11:94987865]	.	PASS	SVTYPE=BND;MATEID=MantaBND:0:1:2:0:0:0:1;IMPRECISE;CIPOS=-156,156;SOMATIC;SOMATICSCORE=41;BND_DEPTH=32;MATE_BND_DEPTH=39	PR	38,0	161,13
+11	94987865	MantaBND:0:1:2:0:0:0:1	A	A]11:94975753]	.	PASS	SVTYPE=BND;MATEID=MantaBND:0:1:2:0:0:0:0;IMPRECISE;CIPOS=-150,150;SOMATIC;SOMATICSCORE=41;BND_DEPTH=39;MATE_BND_DEPTH=32	PR	38,0	161,13
+11	94987872	MantaBND:0:0:2:0:0:0:0	T	T[8:107653411[	.	PASS	SVTYPE=BND;MATEID=MantaBND:0:0:2:0:0:0:1;SOMATIC;SOMATICSCORE=35;BND_DEPTH=39;MATE_BND_DEPTH=26	PR:SR	32,0:28,0	489,4:520,19

@@ -11,9 +11,10 @@ class SVRecord(myio.Record):
     fields += 'group,meta_info,gene_5p,gene_3p,clone,genes,type,avg_cn'
     fields = fields.split(',')
 
-    def __init__(self, parent=None, *args, **kwargs):
+    def __init__(self, parent=None, tool='svaba', *args, **kwargs):
         super(SVRecord, self).__init__(*args, **kwargs)
         self.parent = parent
+        self.tool = tool
         if parent:
             self.from_parent()
 
@@ -145,8 +146,15 @@ class SVRecord(myio.Record):
         args['qual'] = self.parent.QUAL
         args['filter'] = self.parent.FILTER
         args['inner_ins'] = self.parent.INFO.get('INSERTION', None)
-        args['span_reads'] = [call['DR'] for call in self.parent.samples][0]
-        args['junc_reads'] = [call['SR'] for call in self.parent.samples][0]
+        if self.tool == 'svaba':
+            args['span_reads'] = [call['DR'] for call in self.parent.samples][0]
+            args['junc_reads'] = [call['SR'] for call in self.parent.samples][0]
+        if self.tool == 'manta':
+            ref, alt = [call['PR'] for call in self.parent.samples][0]
+            args['span_reads'] = ref + alt
+          
+            ref, alt = [call.data._asdict().get('SR', (0, 0)) for call in self.parent.samples][0]
+            args['junc_reads'] = ref + alt
 
         return args
 
@@ -155,8 +163,11 @@ class SVRecord(myio.Record):
         meta_info = copy.deepcopy(self.parent.INFO)
 
         # add new tags
-        meta_info['TOOL'] = 'svaba'
-        meta_info['MATEID'] = meta_info['MATEID'].replace(':', '_')
+        meta_info['TOOL'] = self.tool 
+        if self.tool == 'svaba':
+            meta_info['MATEID'] = meta_info['MATEID'].replace(':', '_')
+        if self.tool == 'manta':
+            meta_info['MATEID'] = meta_info['MATEID'][0].replace(':', '_')
 
         genotype = []
         for call in self.parent.samples:
@@ -310,9 +321,9 @@ class SVRecord(myio.Record):
             return self.meta_info.get('VARTYPE', None)
 
 
-def read_vcf(vcf_fn, precise=True, id2genes={}, barcode2clone={}, **args):
+def read_vcf(vcf_fn, tool='svaba', precise=True, id2genes={}, barcode2clone={}, **args):
     for vcf_record in vcf.Reader(filename=vcf_fn):
-        sv_record = SVRecord(vcf_record)
+        sv_record = SVRecord(vcf_record, tool)
         if sv_record.id.endswith('_2'):
             continue
         if precise and (not sv_record.precise):
