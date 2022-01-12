@@ -56,6 +56,13 @@ class SVRecord(myio.Record):
         args['meta_info'] = self._get_sv_meta_info
         if 'BND' in self.var_type:
             args.update(self._get_bnd_sv_fields)
+        elif self.var_type == 'INS':
+            args.update(self._get_ins_sv_fields)
+        elif self.var_type == 'DEL':
+            args.update(self._get_del_sv_fields)
+        elif self.var_type == 'DUP':
+            args.update(self._get_dup_sv_fields)
+
         args.update(self._get_general_sv_fields)
         self.set(**args)
 
@@ -167,7 +174,10 @@ class SVRecord(myio.Record):
         if self.tool == 'svaba':
             meta_info['MATEID'] = meta_info['MATEID'].replace(':', '_')
         if self.tool == 'manta':
-            meta_info['MATEID'] = meta_info['MATEID'][0].replace(':', '_')
+            if 'MATEID' in meta_info.keys(): 
+                meta_info['MATEID'] = meta_info['MATEID'][0].replace(':', '_')
+            else:
+                meta_info['MATEID'] = None
 
         genotype = []
         for call in self.parent.samples:
@@ -177,9 +187,51 @@ class SVRecord(myio.Record):
         meta_info['ALT'] = self.parent.ALT
 
         meta_info['VARTYPE'] = self.var_type
-        meta_info['JOINTYPE'] = self.orientation
+        if 'BND' in self.var_type:
+            meta_info['JOINTYPE'] = self.orientation
+        elif self.var_type == 'INS':
+            meta_info['JOINTYPE'] = 'ins'
+        elif self.var_type == 'DEL':
+            meta_info['JOINTYPE'] = 'ht'
+        elif self.var_type == 'DUP':
+            meta_info['JOINTYPE'] = 'th'
+        else:
+            print('vartype', self.var_type)
 
         return meta_info
+
+    @property
+    def _get_ins_sv_fields(self):
+        args = {}
+        args['strand_5p'] = '+'
+        args['strand_3p'] = '+'
+        args['chrom_5p'] = self.parent.CHROM 
+        args['bkpos_5p'] = self.parent.POS
+        args['chrom_3p'] = self.parent.CHROM
+        args['bkpos_3p'] = self.parent.INFO['END']
+        return args
+
+    @property
+    def _get_del_sv_fields(self):
+        args = {}
+        args['strand_5p'] = '+'
+        args['strand_3p'] = '+'
+        args['chrom_5p'] = self.parent.CHROM 
+        args['bkpos_5p'] = self.parent.POS
+        args['chrom_3p'] = self.parent.CHROM
+        args['bkpos_3p'] = self.parent.INFO['END']
+        return args
+
+    @property
+    def _get_dup_sv_fields(self):
+        args = {}
+        args['strand_5p'] = '+'
+        args['strand_3p'] = '+'
+        args['chrom_5p'] = self.parent.CHROM
+        args['bkpos_5p'] = self.parent.INFO['END']
+        args['chrom_3p'] = self.parent.CHROM 
+        args['bkpos_3p'] = self.parent.POS
+        return args
 
     @property
     def _get_bnd_sv_fields(self):
