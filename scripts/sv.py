@@ -157,11 +157,15 @@ class SVRecord(myio.Record):
             args['span_reads'] = [call['DR'] for call in self.parent.samples][0]
             args['junc_reads'] = [call['SR'] for call in self.parent.samples][0]
         if self.tool == 'manta':
-            ref, alt = [call['PR'] for call in self.parent.samples][0]
-            args['span_reads'] = ref + alt
+            if self.parent.samples:
+                ref, alt = [call['PR'] for call in self.parent.samples][0]
+                args['span_reads'] = ref + alt
           
-            ref, alt = [call.data._asdict().get('SR', (0, 0)) for call in self.parent.samples][0]
-            args['junc_reads'] = ref + alt
+                ref, alt = [call.data._asdict().get('SR', (0, 0)) for call in self.parent.samples][0]
+                args['junc_reads'] = ref + alt
+            else:
+                args['span_reads'] = self.parent.INFO.get('BND_PAIR_COUNT', None) 
+                args['junc_reads'] = self.parent.INFO.get('BND_PAIR_COUNT', None) 
 
         return args
 
