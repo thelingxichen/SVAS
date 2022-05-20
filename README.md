@@ -24,11 +24,11 @@ docopt==0.6.2
 
 ## Installation
 ```
-git clone https://github.com/paprikachan/ComplexSV.git
+git clone https://github.com/paprikachan/SVAS.git
 ```
 Then, please add this directory to your `PATH`.
 ```
-export PATH=$PWD/ComplexSV/:$PATH
+export PATH=$PWD/SVAS/:$PATH
 ```
 
 ## Linkage Heatmap
